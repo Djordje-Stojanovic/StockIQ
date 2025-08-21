@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StockIQ - Collaborative Stock Analysis</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <header>
+        <h1>StockIQ</h1>
+        <p>Collaborative Multi-Agent Stock Analysis Platform</p>
+    </header>
+    
+    <main>
+        <section class="status-section">
+            <h2>System Status</h2>
+            <div id="health-status">
+                <p>Checking system health...</p>
+            </div>
+        </section>
+        
+        <section class="input-section">
+            <h2>Stock Analysis</h2>
+            <div class="ticker-input">
+                <label for="ticker">Enter Stock Ticker:</label>
+                <input type="text" id="ticker" placeholder="e.g., AAPL, MSFT, GOOGL">
+                <button id="analyze-btn">Analyze Stock</button>
+            </div>
+        </section>
+        
+        <section class="results-section">
+            <h2>Analysis Results</h2>
+            <div id="results-container">
+                <p>Enter a stock ticker above to begin analysis.</p>
+            </div>
+        </section>
+    </main>
+    
+    <footer>
+        <p>&copy; 2025 StockIQ - Institutional-Grade Investment Research</p>
+    </footer>
+    
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

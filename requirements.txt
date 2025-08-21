@@ -1,0 +1,31 @@
+# StockIQ Dependencies
+# Core FastAPI framework and server
+fastapi>=0.104.0
+uvicorn>=0.24.0
+
+# OpenAI SDK for AI agent functionality
+openai>=1.0.0
+
+# Data validation and settings management
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
+
+# HTTP client for external API calls
+httpx>=0.25.0
+
+# Environment variable management
+python-dotenv>=1.0.0
+
+# Markdown processing for research database
+markdown>=3.5.0
+
+# PDF generation (weasyprint as specified in AC)
+weasyprint>=60.0
+
+# Static file serving
+aiofiles>=23.0.0
+
+# Development and testing dependencies
+pytest>=7.0.0
+pytest-asyncio>=0.21.0
+ruff>=0.1.0
