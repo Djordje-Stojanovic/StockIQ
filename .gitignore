@@ -1,3 +1,7 @@
+# ==============================================================================
+# StockIQ - Stock Intelligence and Analysis Platform
+# ==============================================================================
+
 # Python
 __pycache__/
 *.py[cod]
@@ -16,29 +20,39 @@ parts/
 sdist/
 var/
 wheels/
+share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
 
 # Virtual environments
 venv/
 venv_linux/
 env/
 ENV/
+.venv/
 
-# Environment variables
+# Environment variables & secrets
 .env
-.env.local
-.env.production
+.env.*
+!.env.example
+*.key
+*.pem
+config/local.py
+config/production.py
 
-# IDE
+# IDE & Editors
 .vscode/
+!.vscode/settings.json
+!.vscode/extensions.json
 .idea/
 *.swp
 *.swo
 *~
+.vim/
 
-# OS
+# OS generated files
 .DS_Store
 .DS_Store?
 ._*
@@ -46,39 +60,95 @@ ENV/
 .Trashes
 ehthumbs.db
 Thumbs.db
+desktop.ini
 
-# Logs
+# Development & Testing
 *.log
 logs/
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.tox/
+.nox/
 
-# Temporary files
+# Type checking
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pytype/
+pyrightconfig.json
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# FastAPI specific
+/instance
+/static/uploads
+uploads/
+
+# Database
+*.db
+*.sqlite3
+*.sqlite
+db.sqlite3
+database/
+migrations/__pycache__/
+
+# StockIQ specific files
+# ======================
+
+# Stock data cache
+cache/stock_data/
+cache/market_data/
+*.cache
+
+# Generated reports & PDFs  
+reports/generated/
+*.pdf
+!docs/**/*.pdf
+
+# Research database sessions (keep structure, ignore data)
+research_database/sessions/*/
+research_database/temp/
+research_database/*.db
+
+# Stock analysis outputs
+analysis_outputs/
+stock_reports/
+market_reports/
+
+# API keys and external service credentials
+api_keys/
+credentials/
+secrets/
+.secrets/
+
+# ML models and training data
+models/trained/
+training_data/
+*.pkl
+*.joblib
+*.model
+
+# Temporary computation files
 tmp/
 temp/
 *.tmp
 *.temp
+processing/
 
-# Research database sessions (keep structure, ignore data)
-research_database/sessions/*/
+# Backup files
+*.bak
+*.backup
+*~
 
-# Generated reports
-*.pdf
-generated_reports/
-
-# API keys and secrets
-secrets/
-keys/
-credentials/
-
-# Coverage reports
-htmlcov/
-.coverage
-.coverage.*
-coverage.xml
-
-# pytest
-.pytest_cache/
-
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
+# Lock files
+poetry.lock
+Pipfile.lock
+requirements-dev.txt
