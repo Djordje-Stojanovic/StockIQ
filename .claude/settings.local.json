@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__archon__list_projects",
+      "mcp__archon__get_document",
+      "mcp__archon__search_code_examples",
+      "mcp__archon__perform_rag_query",
+      "mcp__archon__create_task",
+      "mcp__archon__get_task",
+      "mcp__archon__list_tasks",
+      "mcp__archon__list_documents",
+      "mcp__archon__get_project",
+      "mcp__archon__get_available_sources",
+      "Bash(md-tree:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -1,0 +1,920 @@
+Alright Djordje — here’s exactly what a \$5M, \~5,000-hour, “no-excuses” ASML deep-dive would look like if you hired JPM, GS, Morgan Stanley, OpenAI, and Google Gemini to swarm it for three months. Think of this as the blueprint your analysts could hand to those teams on day one and then audit on day ninety.
+
+I’ll give you (1) scope & stats at a glance, (2) the report’s structure with page counts, (3) the workstreams, staffing, and methods, (4) the valuation & IRR engine design, (5) ASML-specific diligence lenses, (6) decision rubric & deliverables. It’s intentionally specific so you can smell gaps.
+
+---
+
+# 1) Scope & Stats (at a glance)
+
+* **Budget:** \$5M total (5 firms × \$1M)
+* **Effort:** \~5,000 analyst hours (≈1,000 per firm) + partner review time
+* **Timeline:** 12–13 weeks from kickoff to PDF sign-off
+* **Output:** One master **PDF (≈220–320 pages)** + **Appendices/Data Room (600–900 pages)** + model pack + code + interview transcripts (redacted)
+* **Primary research:** 40–70 expert/channel interviews; 10–20 customer procurement checks; 6–10 supplier checks; export-control counsel memo; 2–3 patent/standards reviews; 1–2 fab process-flow reviews (where access allows)
+* **Quant pack:** 1 master driver-based model; 1 reverse-DCF; 1 residual income model; 1 SOTP; 1 real-options (High-NA) module; 1 Monte Carlo engine; 1 regime/cycle model; 1 FX module; 1 capital returns module; 1 pricing-power elasticity test; 1 policy shock model
+* **Reproducibility:** Version-controlled code (Python/R), pinned environment file, full assumption log, sensitivity notebooks, and model audit trail
+* **Governance:** Red-team memo; “killer risks” checklists; sign-off matrix; reproducibility certificate
+
+Light humor aside: yes, there will be more acronyms than resist chemists at a SEMICON bar.
+
+---
+
+# 2) Report Structure (with approximate length)
+
+**Front Matter (10–15 pp)**
+
+* One-page Executive Decision (buy/do-nothing), base/bull/bear 10-yr **equity IRR** with 5th/50th/95th percentiles, entry plan & size guidance, kill-switches
+* Summary dashboard, investment checklist, monitoring KPIs
+* Glossary of lithography acronyms
+
+**Part I — Business & Technology (40–55 pp)**
+
+1. Company overview & history of EUV/DUV leadership
+2. Technology primer: DUV, EUV, **High-NA EUV** (optics, sources, resists, pellicles, mask defects, overlay)
+3. Product roadmaps & upgrade cadence; installed-base & services flywheel
+4. Key dependencies: Zeiss optics, Cymer light sources, high-purity subsystems, supply-chain bottlenecks
+5. Manufacturability constraints: lead times, learning curves, yield, field reliability
+
+**Part II — Industry Structure (25–35 pp)**
+6\. Wafer-fab equipment (WFE) stack & value chain; ASML vs AMAT/LRCX/KLAC/TEL
+7\. Competitive dynamics & moats (optics know-how, ecosystem lock-in, IP fortress, service data moat)
+8\. Adoption S-curves by node (logic, DRAM, NAND), cadence of litho intensity per layer
+9\. Capacity cycles: demand drivers, memory vs logic capex regimes, elasticity to pricing and lead time
+
+**Part III — Customers & Use-Cases (25–35 pp)**
+10\. Customer concentration analysis (TSMC, Samsung, Intel, memory makers); wallet share and bargaining power
+11\. Procurement behavior: qualification hurdles, tool-of-record dynamics, service contracts
+12\. Case studies of node transitions (e.g., N3/N2, 18A, DRAM EUV layers) and tool utilization
+
+**Part IV — Geopolitics & Policy (20–30 pp)**
+13\. Export-control regime mapping (US/EU/NL; China scope & timelines)
+14\. Scenario analysis: policy tightening/loosening; China localization; SMEE trajectory
+15\. Supply-chain resilience: single-point failures & mitigation
+
+**Part V — Financials, Quality, & Capital Allocation (30–40 pp)**
+16\. 15-yr restated financials (quality-of-earnings, service vs systems mix, gross-margin bridges, R\&D productivity)
+17\. Unit economics per tool family; pricing power; field upgrades; parts & services margin stack
+18\. Cash conversion, working-capital physics (down-payments, backlog), capex needs
+19\. Capital returns: dividends, buybacks, dilution, optionality from net cash
+
+**Part VI — Valuation & IRR (35–50 pp)**
+20\. DCF (driver-based, cycle-aware), Reverse DCF, Residual Income, SOTP (Systems/Installed Base/Options)
+21\. **Real options** for High-NA adoption & incremental layers; customer option to defer
+22\. **Monte Carlo** (2,000–10,000 paths) across demand, price, mix, policy, FX
+23\. Peer comps & cycle-normalized multiples; long-run reversion bands
+24\. Ten-year **equity IRR** distribution at today’s price; entry ladder & position sizing
+
+**Part VII — Risks, Red-Team & What Would Make Us Wrong (15–25 pp)**
+25\. Technology, supply-chain, policy, customer, pricing, execution, tail risks
+26\. Red-team rebuttal & model perturbations that invert the thesis
+
+**Part VIII — Implementation & Monitoring (10–15 pp)**
+27\. Entry plan, tranche logic, catalysts, monitoring dashboard, alert thresholds
+28\. Post-mortem template & governance
+
+**Appendices (600–900 pp)**
+
+* Interview notes (sanitized), patent maps, standards notes, supplier lists, raw datasets, model documentation, code, audit logs, references
+
+---
+
+# 3) Workstreams, Staffing, and Methods
+
+**Staffing (per firm, aggregated across five):**
+
+* 1–2 lead partners (oversight/sign-off)
+* 3–5 senior analysts (semis/equipment)
+* 1 policy/export-controls counsel (external memo)
+* 1–2 optical/physics SMEs (EUV/High-NA)
+* 1 data scientist + 1 quant (Monte Carlo, regime modeling)
+* 1 forensic accountant (QoE, working capital, backlog)
+* 1 PM-type to keep the trains on time
+* For OpenAI/Gemini teams: 2–4 AI research engineers for doc mining, entity resolution, and reproducibility
+
+**Primary Research:**
+
+* 40–70 semi-structured interviews (ex-ASML, ex-Zeiss, ex-Cymer, tool field-service engineers, fab procurement, litho/process integration, mask shop leads, pellicle vendors, resist chemists, export-control lawyers)
+* 10–20 customer checks (budgeted capex intent; EUV layer roadmaps; utilization; upgrade appetite)
+* 6–10 supplier checks (lead times, yields, bottlenecks)
+* Attendance at relevant industry events during the window (SEMICON, investor days) when feasible
+
+**Secondary Research & Data:**
+
+* Filings (10Ks/20Fs/ARs), investor presentations, transcript databases
+* Customs/shipments where legal, patent and standards databases, academic optics literature
+* WFE data series (industry trackers), macro/fx data, foundry nodes roadmaps
+
+**Scientific/Empirical Methodology:**
+
+* **Hypothesis pre-registration** (what must be true for a 10-yr >X% IRR)
+* **Bayesian framework** to update priors after each evidence packet (e.g., High-NA slip vs pull-in)
+* **Causal DAGs** for key relationships (policy → customer mix → price/mix → margins)
+* **Event studies** (export-rule shifts; major node launches)
+* **Cycle/regime modeling** (Markov or probit-based regimes for memory/logic capex)
+* **Out-of-sample tests** for demand nowcasting signals (orders/backlog delta → rev/GM lag)
+* **Power analysis** on interview counts where quantifiable; triangulation to mitigate bias
+* **Robustness checks**: alternative priors, fat-tail stress, parameter sweeps
+* **Forensic accounting**: adjust for R\&D capitalization, one-offs, working-capital physics
+* **Reproducibility**: code + data lineage, pinned environments, model-to-PDF audit trail
+
+---
+
+# 4) Valuation Stack & 10-Year IRR Engine (design, not numbers)
+
+**Core Drivers:**
+
+* Units by tool family (DUV, EUV, **High-NA EUV**) with adoption S-curves by node and by customer
+* ASPs & upgrade pricing; service revenue per installed tool; utilization & field failure rates
+* COGS curves (learning, yields, supplier pricing); opex density vs revenue; R\&D needed for next nodes
+* Currency (EUR reporting vs USD/NTD/KRW/JPY revenue exposure)
+
+**Models (all linked but separable):**
+
+1. **Cycle-aware DCF**
+
+   * Revenue = Σ (units × ASP × mix) + services;
+   * GM via bill-of-materials and learning curves;
+   * Opex productivity tied to roadmap milestones;
+   * Capex minimal (asset-light) but working-capital heavy;
+   * WACC: bottom-up beta (peer set), EUR risk-free, FX haircuts; terminal via H-model or economic-profit fade.
+
+2. **Reverse DCF**
+
+   * Implied unit/ASP/service growth that justifies today’s price; show feasibility bands.
+
+3. **Residual-Income**
+
+   * Useful when accounting is noisy; emphasizes ROIC vs cost of capital.
+
+4. **SOTP**
+
+   * Systems vs Installed Base (services/upgrades/spares) vs Real Options.
+
+5. **Real Options Module (High-NA)**
+
+   * Option value of accelerated High-NA adoption (and the option to **defer**) → binomial/GBM variants; sensitivity to source-power, pellicle maturity, resist progress.
+
+6. **Monte Carlo (2k–10k paths)**
+
+   * Randomized over: unit demand, ASP, service attach, learning-curve slopes, policy regime, FX; produce **equity IRR distribution**.
+
+7. **Policy Shock Scenarios**
+
+   * Step-function restrictions expansion or partial rollbacks; customer mix shifts (China share bands); impact on service vs systems.
+
+8. **FX Module**
+
+   * Revenue/cost baskets; hedges; translate to EUR equity returns.
+
+**IRR Reporting:**
+
+* **Point estimates**: Base/Bull/Bear 10-yr equity IRR (post-tax, dividends + buybacks reinvested)
+* **Distribution**: Median, 5th/95th, skew, and probability( IRR ≥ your hurdle )
+* **Attribution**: IRR waterfall showing contribution from earnings growth, multiple change, capital returns, and FX
+* **Entry plan**: Laddered tranches with expected-value uplift from volatility (“option to wait” quantified)
+
+---
+
+# 5) ASML-Specific Diligence Lenses (the things great teams do)
+
+* **High-NA readiness map:** source power roadmaps (e.g., >500–600W), pellicle transmission/heat tolerance, resist chemistries, mask defectivity, overlay budgets; what’s proven in high-volume manufacturing vs pilot
+* **Zeiss dependency:** capacity expansions, optics yields, long-lead constraints; dual-sourcing impossibility assessment
+* **Installed-base monetization:** field upgrades cadence, spare-parts margin stack, predictive maintenance models (data moat)
+* **Customer capex intent:** foundry/logic nodes (N2/N1.4, Intel 14A/10A), DRAM EUV layer counts; wallet-share tension vs competitors in non-litho WFE
+* **Pricing power & lead time:** willingness to pay for cycle time/overlay advantages; backlog quality (non-cancelable? penalties?)
+* **Policy pathway trees:** Netherlands/EU/US coordination, China tool segmentation, serviceability under restrictions
+* **Failure modes:** EUV source downtime, pellicle breakage, contamination events, tool utilization cliffs, field reliability; insurance and contractual remedies
+* **Cycle math:** when memory reacceleration flips mix/margins; how many EUV layers are truly at risk if nodes slip
+
+---
+
+# 6) Decision Rubric, Risk Controls, and Deliverables
+
+**Decision Rubric (explicit, binary):**
+
+* **BUY** if: (i) median 10-yr equity IRR ≥ your hurdle (say 12–15% EUR), **and** (ii) ≥65–70% probability IRR ≥ 10%, **and** (iii) red-team cannot produce a plausible parameter set (within evidence-based bands) that drives IRR < 6% without simultaneously assuming contradictions (e.g., drastic adoption collapse plus policy hard stop plus multi-year FX headwind).
+* **DO NOTHING** otherwise, with conditions to re-enter (valuation bands, policy outcomes, High-NA validation milestones, customer capex prints).
+
+**Position & Entry Plan:**
+
+* Target **10%** position sized to **drawdown at risk** (e.g., 95% VaR under policy/cycle stress), staged in **3–5 tranches** around catalysts (customer nodes, policy decisions, earnings), with **kill-switches** (two hard, two soft) tied to: High-NA slip ≥ 18 months, backlog quality deterioration, policy hardening, service attach erosion.
+
+**Monitoring Pack (monthly/quarterly):**
+
+* KPIs: orders/backlog mix, tool shipments by family, customer capex updates, field reliability, service revenue per tool, High-NA milestones, policy headlines mapped to scenario tree, FX deltas
+* Auto-alerts when any KPI cross preset thresholds; pre-baked “what changes in the model” notebooks
+
+**Deliverables (what you actually get):**
+
+1. **Master PDF** (≈220–320 pp) with every claim footnoted to source or model, and an opening one-pager you can trade on.
+2. **Appendices PDF** (≈600–900 pp): interview notes, technical memos, legal/policy memo, patent/standards maps, data dictionaries.
+3. **Model Pack**: Excel (auditable) **and** Python notebooks (driver-based), including Monte Carlo & real-options modules, with all assumptions surfaced in a single control sheet.
+4. **Code Repo**: version-controlled; environment files; reproducibility script that rebuilds all figures/tables.
+5. **Red-Team Memo**: specific parameter sets that break the thesis and management responses.
+6. **Management Q\&A Pack**: 20–30 targeted questions to validate unknowns on future calls.
+7. **Monitoring Dashboard**: pre-wired KPI and alert system; “what-if” levers for your team.
+
+---
+
+## How the \$5M gets used (indicative)
+
+* \~\$1.6M: Senior time (partners/MDs/SMEs, cross-firm)
+* \~\$0.7M: Expert networks/interviews, event access, specialty data, export-control counsel memo
+* \~\$0.9M: Quant engineering (Monte Carlo, real options, regime models), model audit & documentation
+* \~\$0.4M: Patent/standards review & technical teardowns
+* \~\$0.8M: Forensic accounting, transcript mining, data cleaning/entity resolution
+* \~\$0.6M: Program management, report production, graphics, reproducibility infrastructure
+
+---
+
+## Bonus: The 10 questions that decide the IRR
+
+1. High-NA: when, how fast, how many layers, at what margin?
+2. EUV layer growth in logic vs DRAM over 10 years, adjusted for node slips.
+3. Backlog quality and lead-time discipline through a full cycle.
+4. Service monetization per tool and margin sustainability.
+5. Zeiss/Cymer bottlenecks and mitigation credibility.
+6. China policy corridor (tighten/steady/loosen) and serviceability of existing tools.
+7. Customer capex intent vs FCF generation across TSMC/Intel/Samsung/memory makers.
+8. Pricing power under cycle stress; discounting vs value capture.
+9. FX drag or lift over the decade.
+10. Capital returns cadence (buybacks/dividends) and dilution risk.
+
+Nail those with real evidence and a defensible model, and your **buy/do-nothing** call with a 10-year **equity IRR distribution** will be decision-grade. If you want, I can spin up a skeleton of the actual model/appendix table of contents next and pre-wire the monitoring KPIs so your team can plug in numbers on day one.
+_____________
+That was number 1.
+Now number 2:
+_____________
+Got it, Djordje — no wishful thinking, no sci-fi. Here’s the **hyper-realistic** version of what five serious firms would actually do, use, and ship for **\$5M / \~5,000 hours / 3 months** on a **single-PDF ASML master dossier**. I’ll spell out the **people, hours, data, tools, methods, page counts, and the exact artifacts** you’d see — plus what *wouldn’t* be used in reality.
+
+I’ll keep it decision-grade and ruthless about what practitioners actually lean on.
+
+---
+
+# 1) What \$5M/5,000 hours really buys
+
+**Effort & cadence**
+
+* **Total hours:** \~**5,000** over **12–13 weeks** (≈ 400–430 hrs/week)
+* **Steady-state FTE:** **10–12** equivalent (peaking \~18 mid-project), because partners/SMEs contribute part-time
+* **Primary research:** **60–80 expert/channel calls** (most via expert networks), **8–12 supplier checks**, **10–15 customer procurement checks**
+  *Reality check:* more than \~100 expert calls in 3 months is rare; scheduling friction is real.
+* **Output (one file, no appendices):** **\~900–1,100 pages**; **\~320–380 charts**, **\~160–220 tables**, **40–60 “methodology boxes”** (math/assumptions), **80–120 “evidence tiles”** (short, sourced interview excerpts).
+
+**Budget (all-in)**
+
+* Senior/SME time **35%** (\$1.75M)
+* Expert networks & specialty data **17%** (\$0.85M)  *(expert calls typically \$800–\$1,200/hr)*
+* Quant engineering & model audit **18%** (\$0.90M)
+* Forensic accounting **7%** (\$0.35M)
+* Legal/export-control counsel **8%** (\$0.40M)
+* Production (graphics, indexing, cross-refs) **10%** (\$0.50M)
+* Contingency **5%** (\$0.25M)
+
+---
+
+# 2) Who does what (staffing & hours that actually happen)
+
+| Role (pooled across JPM/GS/MS + OpenAI + Gemini)                | People |   Hours | What they *actually* deliver                           |
+| --------------------------------------------------------------- | -----: | ------: | ------------------------------------------------------ |
+| 2 Lead Partners/MDs                                             |      2 |   \~300 | Scope, gating decisions, IC-ready narrative, sign-off  |
+| Program Director                                                |      1 |   \~220 | Workstream orchestration, timeline, version control    |
+| Senior Semicap Analysts                                         |    4–5 | \~1,150 | WFE cycle frameworks, channel checks, valuation sanity |
+| Technical SMEs (optics/EUV/High-NA, litho/process, reliability) |    3–4 |   \~700 | Tech feasibility, manufacturability, failure modes     |
+| Quant PM + 2 DS + 1 Eng                                         |      4 |   \~900 | Driver model, Monte Carlo, regime/cycle & FX modules   |
+| Forensic Accountant                                             |      1 |   \~300 | QoE, backlog/down-payment mechanics, restatements      |
+| Policy/Export-control Counsel                                   |      1 |   \~250 | US/EU/NL/China corridors, serviceability constraints   |
+| Policy/Geo Analyst                                              |      1 |   \~250 | Scenario trees, triggers, probability bands            |
+| Research Associates                                             |    2–3 |   \~500 | Transcripts, doc mining QA, footnotes, fact-checking   |
+| Editorial/Graphics                                              |      2 |   \~430 | Figures, layout, indexing, cross-ref hygiene           |
+
+**Banks (JPM/GS/MS):** channels, customers/suppliers, QoE, valuation checks, policy access.
+**AI teams (OpenAI/Gemini):** doc mining (OCR/NLP), entity resolution, claim→evidence linking, probabilistic modeling infra.
+*No one is running quantum simulations of pellicles.* They’re not needed and no one has that data.
+
+---
+
+# 3) The tools & data they **really** use (and how often)
+
+**Daily workhorses**
+
+* **Filings & transcripts:** Company reports, investor days, **AlphaSense/FactSet CallStreet** for transcripts
+* **Financial platforms:** **Bloomberg**, **FactSet**, **S\&P CapIQ**, (one shop might use Refinitiv)
+* **Sector datasets:** **TechInsights (ex-VLSI) WFE**, **SEMI World Fab Forecast**, **TrendForce/DRAMeXchange**, **IC Insights/IBS** (as accessible)
+* **Patent/standards:** **Derwent/Questel/Patsnap**, **Google Patents**, **IEEE Xplore**
+* **Policy/legal:** BIS releases, Dutch/NL policy notices, EU docs, **MLex/WorldECR** summaries, outside-counsel memo
+* **Alt-data (selective):** **Panjiva/ImportGenius/Datamyne** (shipping/customs) — used to triangulate, not to “count EUV tools in containers”
+* **Internal tooling:** Python (pandas/numpy), Excel for auditability, simple doc-search embeddings for retrieval, house style CM templates
+
+**Weekly**
+
+* **LinkedIn Talent Insights** (hiring velocity/talent flow), **Orbis** for supplier corporate linkage
+* **Press release trackers** (company + customers), **SEMI/industry event decks**
+
+**Rarely (only if needed)**
+
+* Satellite imagery, fab parking-lot counts, obscure sensor feeds — *nice, but mostly noise for ASML tools*
+
+**Never / unrealistic**
+
+* DFT/physics simulations of EUV subsystems, proprietary customer yield data, “secret” lead-time databases. You triangulate via interviews + disclosed orders/backlog.
+
+---
+
+# 4) What they will *actually* model & how
+
+**Driver-based operating model (the spine)**
+
+* Units & ASPs by tool family (**DUV, EUV, High-NA**); **service revenue per installed tool**; utilization and field failure rates (for spares/parts)
+* COGS via **learning curves** (Wright’s law) & supplier pricing; opex tied to roadmap milestones; working-capital physics (**orders → backlog → down-payments → shipments**)
+* Currency: EUR reporting, FX baskets (USD/NTD/KRW/JPY) → **EUR equity IRR**
+
+**Valuation stack that’s actually used**
+
+1. **Cycle-aware DCF** (explicit 10 years, terminal H-model or GDP+inflation-bounded fade)
+2. **Reverse DCF** (what growth/margins the current price implies; feasibility vs adoption history)
+3. **Residual income** (ROIC vs WACC, helpful when accounting timing distorts)
+4. **SOTP** (Systems vs Installed Base vs “Options” tied to High-NA)
+5. **Monte Carlo** (**5,000 runs** typical; 2k–10k range) over: units, ASP/mix, service attach, learning slopes, **policy regime**, **FX**, capital returns
+6. **Policy scenarios** (3–5 discrete states with probability bands; they *don’t* pretend to know the future)
+7. **FX module** (revenue/cost mix, hedge policy; report returns in EUR)
+
+**Statistical machinery (plain and real)**
+
+* **Bayesian updating** on: High-NA timing/penetration, EUV layer growth, policy path
+* **Regime models** for WFE/semicap cycles (Markov/probit)
+* **Survival analysis** (Weibull) for field reliability → spares/service economics
+* **Event studies** for policy shifts & node launches
+* **Robustness**: parameter sweeps, fat-tails, alternative priors
+  *No black-box “AI predicts 2035 ASPs.”* AI helps clean/read/label; humans set ranges.
+
+---
+
+# 5) ASML-specific diligence they won’t skip
+
+* **High-NA readiness map:** source power roadmaps (≥500–600W), pellicle transmission/thermal tolerance, resist maturity, mask defectivity, overlay budgets → **when/how many layers** and **at what margin**
+* **Zeiss optics dependency audit:** capacity ramps, yield learning, long-lead constraints; *why dual-sourcing is practically impossible*
+* **Installed-base monetization:** upgrade cadence, spares margin stack, predictive maintenance data moat
+* **Customer capex intent:** TSMC/Intel/Samsung nodes (N2/1.4; Intel 14A/10A), **DRAM EUV layer counts**; wallet-share & lead-time-pricing dynamics
+* **Backlog quality:** non-cancelable terms, penalties, price discipline through cycles
+* **Policy corridors:** US/EU/NL coordination; China segmentation; **serviceability** of shipped tools under tighter rules
+* **Failure modes:** source downtime, pellicle breakage, contamination; contractual remedies/insurance
+* **Cycle math:** memory vs logic inflections; when mix flips margins
+
+---
+
+# 6) The PDF you’d actually receive (structure & page counts)
+
+**Front Matter (pp. 1–20)**
+
+* 2-page **Executive Decision**: Buy/Do-Nothing, median & 5th/95th **10-yr EUR equity IRR**, position sizing (10% target) with drawdown-at-risk, entry ladder, 4 kill-switches
+* How to read; compliance/MNPI note; glossary
+
+**Part I — Founding→Present (pp. 21–110)**
+History, strategy pivots, EUV bet & industrialization, org & incentives (with *short* interview excerpts, not full transcripts)
+
+**Part II — Technology & Manufacturability (pp. 111–240)**
+DUV vs EUV primer; **High-NA** deep dive; lead times, yields, field reliability; services/telemetry flywheel
+
+**Part III — Ecosystem & Competition (pp. 241–320)**
+Zeiss/Cymer & key suppliers; mask/resist/pellicle vendors; AMAT/LRCX/KLAC/TEL landscape; where moats end
+
+**Part IV — Customers, Nodes, Use-Cases (pp. 321–440)**
+TSMC/Samsung/Intel case studies; DRAM/NAND adoption cadence; wallet share; qualification hurdles
+
+**Part V — Policy & Geopolitics (pp. 441–520)**
+Export regimes; scenario tree with triggers & probability bands; serviceability constraints under each path
+
+**Part VI — Financial Engine (pp. 521–660)**
+Restated 15-yr P\&L/CF/BS; unit economics by tool family; pricing power vs lead time; backlog/DP mechanics; cap returns
+
+**Part VII — Valuation & IRR (pp. 661–840)**
+Cycle-aware DCF; Reverse-DCF; Residual income; SOTP; **Real-options (High-NA defer/accelerate)**; **Monte Carlo 5k runs**; **FX module**; IRR attribution waterfall; sensitivity heatmaps
+
+**Part VIII — Red-Team & “What breaks it” (pp. 841–900)**
+Plausible bear parameter sets; technology/policy/cycle tails; which sets drive IRR < 6% and why they’re (im)plausible
+
+**Part IX — Implementation & Monitoring (pp. 901–980)**
+Entry ladder & catalysts; KPI dashboard & alert thresholds; model update protocol; management Q\&A pack (20–30 questions)
+
+**Part X — Evidence & References (pp. 981–1,080)**
+“**Evidence tiles**” (call excerpts) and **source catalog** (filings, datasets, papers) next to claims; figure index
+*(One file means curated excerpts only; no raw dumps.)*
+
+*Totals:* \~**1,000 pages**, **\~350 charts**, **\~180 tables**, **\~50 methodology boxes**, **\~100 evidence tiles**.
+
+---
+
+# 7) The decision logic you’ll actually see (no hero number)
+
+**Binary rule (long-only PM):**
+
+* **BUY** if (i) **median 10-yr EUR equity IRR ≥ your hurdle** (e.g., 12%), **and** (ii) **P(IRR ≥ 10%) ≥ 65–70%**, **and** (iii) no evidence-bounded parameter set yields **IRR < 6%** without contradictions.
+* Else **DO NOTHING**, with clear re-entry triggers (valuation bands, High-NA milestones, policy outcomes, backlog prints).
+
+**IRR reporting:** distribution (median/5th/95th), attribution (earnings, multiple, capital returns, FX), and **value-of-waiting** estimate for tranching.
+*Hyper-real expectation:* At today’s prices, credible teams will show a **distribution** typically landing somewhere around **\~9–14% median** with tails to mid-single digits and high-teens, **explicitly tied to** High-NA timing, customer EUV layer growth, policy path, and FX.
+
+---
+
+# 8) Timeline that actually fits 3 months
+
+* **W1–2:** Kickoff, hypotheses (“what must be true”), driver tree, doc skeleton, interview scheduling, initial data pulls
+* **W3–5:** Channel/supplier/customer checks; technical SME deep dives; **deterministic model v1**; counsel memo draft; first figures
+* **W6–8:** Bayesian updates; regime models; **Monte Carlo v1** (5k runs); real-options v1; red-team v0; chapters I–V draft
+* **W9–10:** Synthesis; valuation stack locked; **IRR distribution** & attribution; red-team challenge; edit for claim→evidence links
+* **W11:** QoE & backlog mechanics; legal/policy sign-off; narrative tighten
+* **W12:** Graphics/indexing; cross-ref QA; **PDF lock**; executive briefing
+
+---
+
+# 9) Compliance & reality checks (the non-glamorous truth)
+
+* **MNPI firewall:** All interviews are scrubbed; anything smelling like MNPI is discarded.
+* **Antitrust/sanctions:** Counsel reviews every policy section; conclusions stop short of “circumvention advice.”
+* **Data friction:** Shipping data is messy; **SEMI/TechInsights** beat clever satellites.
+* **No physics cosplay:** You won’t see pellicle finite-element sims; you’ll see **feasibility ranges** vetted by SMEs.
+* **No 1,500-page “core”:** Readability wins. The file is \~1,000 pages because you banned appendices; otherwise the core would be \~250–320 pages.
+
+---
+
+# 10) Sample “Methodology Box” (the kind you’d actually get, code-free)
+
+**Monte Carlo IRR Engine (5,000 runs) — Summary Spec**
+
+* **Purpose:** Convert uncertainty in demand/mix/pricing/policy/FX into a **10-yr EUR equity IRR distribution**.
+* **Key drivers (randomized):**
+
+  * Units by family {DUV, EUV, High-NA}: log-normal; μ/σ set by adoption S-curves & customer roadmaps
+  * ASPs, service attach: triangular distributions anchored to historical bands & contract intel
+  * Learning curves (COGS): Wright’s law with slope β in \[-0.15, -0.25] by family
+  * Policy state: categorical {tighten, steady, loosen} with priors p and impacts on China mix & serviceability
+  * FX: vector of AR(1) processes calibrated to historical vol; hedging policy as constraint
+* **Correlations:** Cholesky from historical co-moves (e.g., memory cycle ↔ EUV units).
+* **Capital returns:** Payout ratio bands with drawdown-aware buybacks; dividend floors from board history.
+* **Convergence:** Run-length test on IRR percentiles; seed recorded; full run reproducible from this spec.
+* **Validation:** Backtest last 5 cycles on semicap set for error bands; alternative priors stress.
+* **Output:** Median IRR, 5th/95th, **P(IRR ≥ hurdle)**, IRR attribution waterfall.
+
+*(Everything here is re-implementable by an external quant without seeing our code.)*
+
+---
+
+# 11) What *sounds* cool but doesn’t move the needle (and thus won’t be used)
+
+* “AI predicts node transitions from Twitter sentiment” — **no**
+* Drone counts of trucks at Veldhoven — **no**
+* Quantum/DFT simulations for resist chemistry — **no**
+* “Secret spreadsheets of customer yields” — **don’t exist** (and would be MNPI if they did)
+
+---
+
+# 12) The one-pager you actually trade on (opening spread)
+
+* **Decision:** BUY / DO NOTHING
+* **Median 10-yr EUR equity IRR:** X% (with 5th/95th)
+* **P(IRR ≥ 10%):** Y%
+* **Top five drivers (with signs):** High-NA layers ↑, EUV layer growth ↑, policy tighten ↓, FX EUR↑ ↓, service attach ↑
+* **Position:** 10% target in **3–5 tranches**; catalysts A/B/C
+* **Kill-switches:** High-NA slip ≥18 months; backlog terms deterioration; service attach erosion; policy hardening beyond scenario bands
+
+---
+
+## Bottom line
+
+If you wrote the check tomorrow, you’d get a **\~1,000-page single PDF** that opens with a **binary call** and a **10-year EUR equity IRR distribution**, then ties every material claim to a **source excerpt** and a **method spec**. The teams will use **boring, proven tools** (Bloomberg/FactSet/TechInsights/SEMI + expert calls), **driver models + Monte Carlo**, **Bayesian updates**, **regime cycles**, and **forensic accounting**. They won’t play astronaut. They’ll do what works — and show you exactly how they got there.
+
+If you want, I’ll mock the **actual 2-page Executive Decision** and a **sample IRR attribution waterfall** in the same style next, so you can see the front matter as it would appear.
+_____________
+That was number 2.
+Here is number 3:
+Alright, Djordje — here’s **C**, the “no-theater, decision-grade” brief you can hand to Goldman/JPM/MS for a **\$1M / 12–13 weeks / 250–300-page single-PDF** on **ASML**. It cherry-picks the best of A’s completeness and B’s sell-side realism, with your requirement that **\~10% (≈25–30 pp)** is serious **Founding→Today history**.
+
+---
+
+# C — ASML Master Dossier (250–300 pp, single PDF)
+
+## 0) Non-negotiables
+
+* **Length:** **250–300 pages** core PDF. No separate “black book vs appendix” PDFs.
+* **History depth:** **25–30 pages** dedicated to **Founding→Present**, integrated (not a throwaway appendix).
+* **Decision utility:** Open with a **binary call (Buy / Do Nothing)** and a **10-year EUR equity IRR distribution**, not a vibes-based 12-mo PT.
+* **Auditability:** Every material claim footnoted to filings, transcripts, datasets, or interview notes (summarized).
+* **Model:** Deliver **one auditable Excel** (driver-based) + a **read-only Monte Carlo results sheet**. Code is optional; results are mandatory.
+
+---
+
+## 1) Scope & Deliverables
+
+**Deliverables (all due at PDF lock):**
+
+1. **Core PDF (250–300 pp)** per structure below.
+2. **Excel model** (DCF, Reverse-DCF, Residual Income, SOTP, MC results; scenario & sensitivity tabs).
+3. **Evidence Catalog (.xlsx):** source IDs (filing/transcript/vendor data/interview), date, link/path, 1-line relevance.
+4. **1-page Executive Decision sheet** (standalone, mirrors the opening spread).
+5. **Monitoring cheat-sheet (2 pp)** with KPI thresholds & re-underwriting triggers.
+
+**Budget allocation (indicative):**
+
+* Senior/SME time 35% | Expert networks & specialty data 20% | Quant/model audit 18% | Forensic accounting 7% | Policy counsel 8% | Production 7% | Contingency 5%.
+
+**Staffing expectation (one bank, \~\$1M):**
+
+* 1 Lead Analyst (semicap) + 1 Co-lead; 2 Sr Associates; 1 Quant + 1 DS; 1 Forensic Accountant; 1 Technical SME (EUV/optics); 1 Policy/Export-control advisor; 1 PM/Producer; 1 Designer/Editor.
+* **Primary research:** **35–55** expert/channel calls; **8–12** supplier checks; **8–15** customer/procurement checks.
+
+---
+
+## 2) Report Structure & Page Counts (target)
+
+**Front Matter (8–12 pp)**
+
+* 2-page **Executive Decision**: Buy/Do Nothing; **median & 5th/95th 10-yr EUR equity IRR**; **P(IRR ≥ 10%)**; entry ladder; kill-switches; key drivers.
+* How to read; compliance/MNPI note; glossary.
+
+**Part I — Company History & Strategic Evolution (25–30 pp)**  ← **Your must-have**
+
+* Chronology (Founding → EUV bet → Cymer integration → High-NA program → export-control eras).
+* **Milestone Table (≥200 rows)** with **date, event, tag (tech/finance/governance/policy/supply), impact on economics**, **source ID**.
+* Leadership & incentives timeline; product-family evolution; supply partner chronology (Zeiss/Cymer/pellicles/resists); major customer adoption moments.
+* **“So what” sidebars** tying milestones to margin/ASP/service/lead-time.
+
+**Part II — Technology & Manufacturability (35–45 pp)**
+
+* DUV vs EUV vs **High-NA**: optics, sources, pellicles, resists, overlay budgets; manufacturability gates; field reliability.
+* Installed-base telemetry & services flywheel; upgrade cadence; failure modes.
+
+**Part III — Ecosystem, Competition, and Supply (25–35 pp)**
+
+* WFE stack; where ASML’s moat ends; Zeiss dependency audit; supplier bottlenecks and lead-time discipline.
+
+**Part IV — Customers, Nodes, and Use-Cases (25–35 pp)**
+
+* TSMC/Intel/Samsung & memory makers: wallet share, procurement behavior, qualification hurdles, utilization patterns; EUV layers in logic/DRAM trajectories.
+
+**Part V — Policy & Geopolitics (20–25 pp)**
+
+* US/EU/NL regimes; China segmentation and **serviceability** of installed tools; 3–5 discrete policy states with triggers & probability bands.
+
+**Part VI — Financial Engine (30–40 pp)**
+
+* 15-yr restated P\&L/CF/BS; backlog/down-payment mechanics; unit economics by tool family; service margin stack; working-capital physics; capital returns.
+
+**Part VII — Valuation & 10-Year IRR (40–50 pp)**
+
+* **Cycle-aware DCF**, **Reverse-DCF**, **Residual Income**, **SOTP (Systems vs Installed Base vs Options)**.
+* **Real-options** around High-NA adoption/defer; **Monte Carlo (2k–5k paths)** over units/ASP/service/learning/policy/FX; **FX module** (EUR reporting).
+* **IRR attribution waterfall** (earnings, multiple, capital returns, FX) + sensitivity heatmaps.
+
+**Part VIII — Risks, Red-Team & Falsification (15–20 pp)**
+
+* Parameter sets that break the thesis; technology/policy/cycle tails; contradiction checks.
+
+**Part IX — Implementation & Monitoring (8–12 pp)**
+
+* Entry ladder (3–5 tranches), catalysts, drawdown-at-risk, KPI dashboard, alert thresholds, update protocol.
+
+**References & Figure Index (8–12 pp)**
+
+* Source catalog summary (full catalog in the .xlsx); figure/table index; methodology notes.
+
+> **Totals:** \~**260–295 pages**, **\~250–320 charts**, **\~120–160 tables**, **\~30–40 methodology boxes**.
+
+---
+
+## 3) Methods We Require (use these, not hand-waving)
+
+**Model spine (driver-based):** Units & ASPs by family (DUV/EUV/High-NA) + service/tool; COGS via learning curves; opex vs roadmap milestones; working-capital physics (orders→backlog→DP→shipments); currency baskets; capital returns.
+
+**Valuation stack (all required):**
+
+1. **Cycle-aware DCF** (10-yr explicit, terminal H-model or GDP+inflation fade)
+2. **Reverse-DCF** (implied growth/margins vs feasibility)
+3. **Residual income** (ROIC vs WACC, cleans timing noise)
+4. **SOTP** (Systems / Installed Base / High-NA option value)
+5. **Real-options** (High-NA accelerate/defer)
+6. **Monte Carlo** (**2k–5k paths**) across units, ASP/mix, service attach, learning slopes, **policy state**, **FX**
+7. **FX module** (rev/cost baskets, hedging; report **EUR equity IRR**)
+
+**Statistical hygiene:**
+
+* **Bayesian updates** for High-NA timing/penetration and policy states (priors disclosed).
+* **Regime models** for WFE cycles (memory vs logic).
+* **Event studies** for export-rule changes and node launches.
+* **Reliability/survival** (Weibull) to tie field failure to spares/service economics.
+* **Robustness:** fat-tail stress, parameter sweeps, alternative priors.
+
+**Forensic & legal:**
+
+* QoE adjustments (R\&D capitalization, one-offs), backlog quality (non-cancelable terms, penalties), revenue recognition, warranty accruals.
+* Policy counsel review for export-control mapping & language; **no MNPI**.
+
+---
+
+## 4) History Section — Acceptance Criteria (your 10%)
+
+* **Length:** **25–30 pages** in the **core**.
+* **Milestone table:** **≥200 items**; each row has **Date | Event | Tag | Impact (economic “so what”) | Source ID**.
+* **Leadership & incentives:** CEO/CFO/CTO tenure, comp metric shifts, notable capital-allocation calls.
+* **Product & supply evolution:** DUV/EUV/High-NA generations (first HVM dates, typical ASP bands), Zeiss/Cymer roadmaps, pellicle/resist breakthroughs.
+* **Customer adoption log:** first EUV layers by node (logic/DRAM), major slips/pull-ins.
+* **Could-not-verify list:** any disputed items flagged with evidence gaps.
+
+---
+
+## 5) Decision Rules (binary, no hero number)
+
+* **BUY** if: (i) **median 10-yr EUR equity IRR ≥ your hurdle** (e.g., 12%), **and** (ii) **P(IRR ≥ 10%) ≥ 65–70%**, **and** (iii) no evidence-bounded parameter set yields **IRR < 6%** without contradictions.
+* Otherwise **DO NOTHING**, with re-entry triggers (valuation bands, High-NA milestones, policy outcomes, backlog prints).
+
+---
+
+## 6) KPIs & Monitoring (pre-wired)
+
+* Orders/backlog mix, shipments by family, EUV/High-NA milestones, field reliability, service revenue per tool, Zeiss capacity, customer capex updates, policy headline mapping, FX deltas.
+* **Alert thresholds** hard-coded; a 2-page “what to change in the model” guide.
+
+---
+
+## 7) Timeline (12–13 weeks)
+
+* **W1–2:** Kickoff, “what must be true,” driver tree, doc skeleton, interview queue, initial data pulls.
+* **W3–5:** Channel/supplier/customer checks; tech SME deep dives; **deterministic model v1**; first figures; History Milestone table v0.9.
+* **W6–8:** Bayesian updates; regime models; **Monte Carlo v1**; real-options v1; **History section final**; red-team v0.
+* **W9–10:** Synthesis; valuation locked; IRR distribution & attribution; red-team challenge; compliance/policy review.
+* **W11–12:** Graphics/indexing; cross-ref QA; **PDF lock**; Excel audit; Executive briefing.
+
+---
+
+## 8) Production Rules (so this ships clean)
+
+* Every figure/table numbered; claim→evidence link; footnotes with source IDs; glossary of acronyms.
+* No embedding of third-party copyrighted charts beyond fair use; **summarize and cite**.
+* **Methodology boxes** (½–1 page) where math drives conclusions (DCF, Reverse-DCF, Monte Carlo spec, FX).
+* **Red-team memo** summarized in Part VIII; full issues resolved or explicitly noted.
+
+---
+
+## 9) Things You Will **Not** Do (to hit 300 pages with signal)
+
+* No “museum tour” press-release dumps.
+* No physics cosplay (DFT/pellicle FEA).
+* No exotic alt-data center stage unless it **moves the IRR bands**.
+* No code repositories delivered; **Excel + MC results** suffice.
+
+---
+
+## 10) Submission Checklist (acceptance test)
+
+* **PDF (250–300 pp)** received; **History Part = 25–30 pp** with ≥200-row milestone table.
+* **Excel model** opens without external links; control sheet of assumptions; scenario toggles; sensitivities; **MC percentiles** present.
+* **Executive Decision one-pager** present & consistent with body.
+* **Evidence Catalog (.xlsx)** with working links/IDs.
+* **KPI cheat-sheet (2 pp)** included.
+* All charts/tables cross-referenced; glossary complete; compliance attestation included.
+
+---
+
+### Bottom line
+
+**C** gives you **A’s depth where it matters (history & methods)** and **B’s realism in packaging and workflow**. You get a **clean 250–300-page single PDF**, **serious History (25–30 pp)**, an **auditable model**, and a **binary decision with an IRR distribution**. This is exactly what a top sell-side team can execute in three months — no fluff, no missing guts.
+Perfect—let’s **extend C** without deleting a thing. Here’s the **Addendum** that bolts on exactly what you asked for: **Goldman-grade staffing, hours, ownership, methodologies, and the chartbook spec**. This slots right onto the end of C.
+
+---
+
+# Addendum to **C** — Staffing, Hours, Ownership, Methods, and Chartbook
+
+## 11) Staffing & Hours (GS-grade reality for a \$1M mandate)
+
+**Blended assumption:** \$1M total. Internal blended rate ≈ \$450–\$600/hr; external experts/data ≈ \$180–\$250k.
+**Total labor hours:** ≈ **1,450–1,700 hrs** internal + ≈ **150–220 hrs** paid experts → **\~1,650–1,900 total hrs** executed over **12–13 weeks**.
+
+| Track         | Role                                    | FTE equiv |       Hours | Primary accountability                                         |
+| ------------- | --------------------------------------- | --------: | ----------: | -------------------------------------------------------------- |
+| Leadership    | Lead Analyst (Semicap; VP/MD coverage)  |       0.4 |     **220** | End-to-end thesis, executive decision, valuation sign-off      |
+| Leadership    | Sector Head / Co-head Reviewer (MD)     |       0.1 |      **60** | Gate reviews, tone, rating/PT alignment (if published)         |
+| Core Research | Senior Associate (Semicap)              |       0.8 |     **420** | Model spine build, comps/sensitivities, Part VI–VII drafts     |
+| Core Research | Associate (Semis)                       |       0.7 |     **360** | Data pulls, transcript mining, figure production               |
+| Technical     | EUV / High-NA SME (externally retained) |      0.15 |      **80** | Parts II technology/manufacturability, failure modes           |
+| Technical     | Supply Chain SME (optics/Zeiss/Cymer)   |      0.10 |      **55** | Supplier capacity/yield, bottlenecks                           |
+| Policy        | Export-Control Counsel (external memo)  |      0.10 |      **55** | Policy mapping, language scrub, scenario constraints           |
+| Quant         | Quant PM (VP)                           |      0.25 |     **140** | Monte Carlo, regime model, real-options spec                   |
+| Quant         | Data Scientist (Python/Excel)           |      0.35 |     **200** | Simulation runs, FX module, attribution waterfall              |
+| Accounting    | Forensic Accountant (VP)                |      0.25 |     **140** | QoE restatements, backlog/DP mechanics, accruals               |
+| Production    | Research Editor / Designer              |       0.4 |     **220** | House style, charts, indexing, cross-ref hygiene               |
+| Program       | Project Manager / Ops                   |      0.25 |     **140** | Cadence, interview logistics, version control                  |
+| Experts       | Interviewed Practitioners (paid calls)  |         — | **150–220** | 35–55 calls: field service, fab procurement, pellicle, resists |
+
+> **Weekly cadence:** ≈ **130–160 hrs/week** distributed across roles, peaking weeks 6–9.
+
+---
+
+## 12) Ownership Matrix — Who writes what (and how it gets approved)
+
+| Section (from C)                     | Draft owner      | Co-authors / inputs                             | Approver     |
+| ------------------------------------ | ---------------- | ----------------------------------------------- | ------------ |
+| **Front Matter**                     | Lead Analyst     | Quant PM (IRR figs), Editor                     | Sector Head  |
+| **Part I (History 25–30 pp)**        | Senior Associate | Lead Analyst, Forensic, PM (evidence catalog)   | Lead Analyst |
+| **Part II (Tech/Manufacturability)** | EUV/High-NA SME  | Associate (figures), Quant (reliability curves) | Lead Analyst |
+| **Part III (Ecosystem/Supply)**      | Supply Chain SME | Associate (supplier tables), Forensic           | Lead Analyst |
+| **Part IV (Customers/Nodes)**        | Senior Associate | Lead Analyst, field interviews                  | Lead Analyst |
+| **Part V (Policy)**                  | Policy Counsel   | Lead Analyst (probability bands)                | Sector Head  |
+| **Part VI (Financial Engine)**       | Forensic         | Associate (restatements), Lead Analyst          | Lead Analyst |
+| **Part VII (Valuation & IRR)**       | Quant PM         | DS (MC/FX), Lead Analyst (narrative)            | Sector Head  |
+| **Part VIII (Red-Team)**             | Quant PM         | Lead Analyst, Forensic                          | Sector Head  |
+| **Part IX (Implementation)**         | Lead Analyst     | PM (KPI thresholds), Quant (option-to-wait)     | Sector Head  |
+| **References/Index**                 | Editor           | PM (evidence catalog sync)                      | Lead Analyst |
+
+---
+
+## 13) Expert Task Force — Profiles & call targets (35–55 interviews)
+
+**Target mix and “why it matters”**
+
+* **EUV field service engineers (5–8 calls):** uptime, failure modes → service revenue/parts margin modeling.
+* **Process integration leads at foundries (4–6):** layer counts, tool-of-record dynamics → units/ASP mix.
+* **Mask shop leads / pellicle vendors (3–5):** defectivity/thermal performance → High-NA readiness.
+* **Resist chemists / materials (2–4):** stochastic effects / dose → timing risk bands.
+* **Zeiss optics engineers / ex-Cymer (4–6):** optics yields/capacity → system throughput & lead-time discipline.
+* **Fab procurement (5–7):** price discipline, contract terms, service attach → pricing power/backlog quality.
+* **Memory vendor planners (3–5):** DRAM EUV layer adoption → cycle sensitivity.
+* **Export-control practitioners (2–3):** serviceability under regimes → installed-base monetization.
+* **Ex-ASML product managers (2–3):** roadmap reality checks → S-curves and margins.
+
+**Interview protocol (GS-style):** semi-structured guides; no MNPI; two-source corroboration for any claim entering the model; **“could-not-verify” list** published in Part I.
+
+---
+
+## 14) Valuation Methodologies — Math spec (executable without code handoff)
+
+**7-model stack (all required)**
+
+1. **Cycle-aware DCF (10y)**
+
+* $Revenue_t = \sum_f Units_{f,t} \times ASP_{f,t} + Services_t$.
+* $GM_t = f(\text{learning}, \text{mix}, \text{supplier pricing})$.
+* Terminal via **H-model** (fade from near-term g to long-term g\*).
+* **WACC (EUR):** Rf(EUR) + β × ERP + size/FX haircuts; tax shield on leases if material.
+
+2. **Reverse-DCF**
+
+* Solve for $\{Units, ASP, GM, Opex\}$ paths that imply current PV = Price × Shares.
+* Feasibility test vs historical adoption and supply constraints.
+
+3. **Residual Income**
+
+* $RI_t = NOPAT_t - WACC \times InvestedCapital_{t-1}$; valuation as $BV_0 + \sum RI_t/(1+WACC)^t$.
+* Highlights economic profit persistence.
+
+4. **SOTP**
+
+* **Systems** (tool shipments, margins), **Installed Base** (services/upgrades/spares), **Options** (High-NA scenario tree).
+* Cross-check against peer EV/rev band and service peers’ multiples.
+
+5. **Real Options (High-NA)**
+
+* Binomial lattice (annual steps): state = {adoption on/off, margin band}.
+* Inputs from SME: source power, pellicle readiness, resist maturity → probability of up-move/down-move.
+
+6. **Monte Carlo (2k–5k paths)**
+
+* Randomize over: $\{Units_f, ASP_f, ServiceAttach, LearningSlope, PolicyState, FX\}$ with correlations (Cholesky).
+* Output: **EUR equity IRR distribution** (median, 5/95), **P(IRR ≥ hurdle)**.
+
+7. **FX Module**
+
+* Basket: USD/NTD/KRW/JPY revenue vs EUR cost/reporting; hedging policy as constraints; AR(1) or historical resampling.
+
+**Attribution**
+
+* **Waterfall:** Earnings growth, Multiple change, Capital returns, FX → **10-yr IRR**.
+* **Sensitivity tables:** High-NA timing, EUV layer growth, service attach, EURUSD.
+
+---
+
+## 15) Chartbook Spec — What charts go in (titles you’ll actually see)
+
+**Target: 260–320 charts across the book. Below are the canonical ones PMs expect.**
+
+**Front Matter**
+
+* “**10-Year EUR Equity IRR Distribution**” (histogram + 5/50/95th)
+* “**What Drives IRR**” (top-5 drivers tornado)
+
+**Part I (History)**
+
+* “**ASML Milestones Timeline (1984→Today)**” (banded with tech/policy/finance)
+* “**Leadership & Incentive Shifts**” (C-suite tenure vs comp metrics)
+* “**Product Family Evolution**” (DUV→EUV→High-NA, first HVM dates, ASP bands)
+
+**Part II (Tech/Manufacturability)**
+
+* “**EUV/High-NA Stack**” (optics/source/pellicle/resist schematic)
+* “**Throughput vs Source Power**” curve
+* “**Pellicle Transmission & Thermal Tolerance**” bands
+* “**Field Reliability (Weibull)**” — MTBF and hazard rates → service margin
+
+**Part III (Ecosystem/Supply)**
+
+* “**Zeiss Optics Capacity Ramp**” vs tool shipments
+* “**Critical Subcomponents Lead Times**” by family
+* “**Moat Boundary Map**” (where KLAC/AMAT/LRCX/TEL compete)
+
+**Part IV (Customers/Nodes)**
+
+* “**EUV Layer Counts by Node**” (logic & DRAM trajectories)
+* “**Wallet Share by Customer**” (stacked)
+* “**Tool Utilization & Discounting**” (lead time vs ASP discipline)
+
+**Part V (Policy)**
+
+* “**Policy Scenario Tree**” with triggers/probabilities
+* “**Serviceability Matrix (by regime)**” (installed base × policy state)
+
+**Part VI (Financial Engine)**
+
+* “**Backlog & Down-Payment Mechanics**” (orders→backlog→cash)
+* “**Gross-Margin Bridge**” (mix, learning, pricing)
+* “**Service Revenue per Installed Tool**” (cohort view)
+
+**Part VII (Valuation & IRR)**
+
+* “**Reverse-DCF Feasibility Bands**”
+* “**Real-Options Lattice (High-NA)**” snapshot
+* “**Monte Carlo Convergence**” & “**Correlation Heatmap**”
+* “**IRR Attribution Waterfall**”
+* “**Sensitivity Heatmaps**” (High-NA timing × EUV layers; FX × service attach)
+
+**Part VIII (Red-Team)**
+
+* “**Bear Parameter Set** vs Evidence Bands”
+* “**Which Two Assumptions Break the Thesis**” (2-D grid)
+
+**Part IX (Implementation)**
+
+* “**Entry Ladder & Value-of-Waiting**”
+* “**Drawdown-at-Risk under Policy/Cycle Stress**”
+
+---
+
+## 16) Data Sources & Frequency of Use (practical list)
+
+* **Daily:** Company filings/IR materials; Bloomberg/FactSet/S\&P; CallStreet/AlphaSense transcripts; TechInsights/SEMI trackers.
+* **Weekly:** TrendForce/IC Insights; patent databases (Derwent/Questel); IEEE Xplore; LinkedIn Talent Insights.
+* **Selective:** Panjiva/ImportGenius (triangulation); Orbis (supplier linkages); MLex/WorldECR (policy).
+* **Events (if within window):** SEMICON, company days, peer conferences.
+
+---
+
+## 17) Production & QC Workflow (so this ships clean at 250–300 pp)
+
+* **Gate reviews:** W2 (scope), W5 (model v1), W8 (MC v1), W10 (content lock), W12 (PDF lock).
+* **Fact checking:** claim→footnote→source-ID triage; two-source rule on non-filing facts.
+* **Licensing hygiene:** re-draw third-party charts, **summarize and cite**; no raw dumps.
+* **Red-team:** independent read of Parts II, V, VII; issues logged with disposition (accept/change/justify).
+* **Excel audit:** hard-code finder, link checker, scenario toggle test; MC seeds recorded.
+* **Glossary & index:** compiled by Editor; acronyms expanded on first use.
+
+---
+
+## 18) Hours by Workstream (so you see where the \$1M goes)
+
+| Workstream                                         |       Hours |
+| -------------------------------------------------- | ----------: |
+| Primary research (interviews incl. prep/synthesis) | **380–460** |
+| Financial restatement & QoE                        | **120–160** |
+| Driver model build (deterministic)                 | **220–260** |
+| Monte Carlo / regime / FX / real-options           | **210–260** |
+| Policy mapping & legal scrub                       |  **70–110** |
+| Technology/manufacturability analysis              | **150–200** |
+| Writing & figures (Parts I–IX)                     | **280–340** |
+| Editing, layout, indexing, cross-refs              | **160–220** |
+| Program management & reviews                       |  **80–120** |
+
+---
+
+## 19) Acceptance Tests (expanded, pass/fail)
+
+* **History (Part I) = 25–30 pp** with **≥200-row Milestone Table** and **so-what** column; **Could-not-verify list** present.
+* **Excel model**: opens clean; **Control sheet**; **Base/Bull/Bear**; **sensitivities**; **MC percentiles**; **IRR waterfall**; **no external links**.
+* **Valuation stack**: all **7 methods** present; terminal method disclosed; WACC inputs transparent.
+* **Policy scenarios**: 3–5 discrete states with **probabilities** and **serviceability matrix**.
+* **Red-team**: at least **2 bear parameter sets** documented and addressed.
+* **KPI cheat-sheet**: thresholds + “what changes in the model” mapping.
+* **Evidence Catalog (.xlsx)**: working links/IDs; coverage >90% of material claims.
+
+---
+
+## 20) Deliverable Index (what each file contains)
+
+* **ASML\_Master.pdf (250–300 pp)** — the book per C + this addendum context embedded in methods/appendices sections.
+* **ASML\_Model.xlsx** — tabs: Control, Drivers, Units/ASP, Services, COGS/GM, Opex, WC, DCF, ReverseDCF, ResidualIncome, SOTP, RealOptions, FX, **MC\_Results**, Sensitivity, IRR\_Waterfall.
+* **Evidence\_Catalog.xlsx** — DocID, Title, Date, Source Type, Link/Path, Tag, Relevance, SectionRef.
+* **Executive\_Decision.pdf (2 pp)** — mirrors the opening spread.
+* **Monitoring\_CheatSheet.pdf (2 pp)** — KPI thresholds & re-underwriting triggers.
+
+---
+
+### Final word
+
+This extension gives you the **people, hours, ownership, methods, and chartbook** a real Goldman team would field for a \$1M, **single 250–300-page PDF**—**with 25–30 pages of serious history** baked in. It stays ruthlessly decision-useful, fully auditable, and absolutely buildable in 12–13 weeks. If you want, I can also draft the **History Milestone Table schema** (column definitions + sample 10 rows) so your analysts can start populating it on day one.
