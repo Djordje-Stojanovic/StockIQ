@@ -17,7 +17,7 @@ class TestFastAPIApplication:
 
     def test_create_app_returns_fastapi_instance(self):
         """Test that create_app returns a FastAPI instance."""
-        with patch('src.main.get_settings') as mock_settings:
+        with patch("src.main.get_settings") as mock_settings:
             mock_settings.return_value = MagicMock(openai_api_key="test_key")
             test_app = create_app()
             assert test_app.title == "StockIQ"
@@ -33,7 +33,7 @@ class TestFastAPIApplication:
 class TestHealthCheckEndpoint:
     """Test suite for health check endpoint."""
 
-    @patch('src.main.get_settings')
+    @patch("src.main.get_settings")
     def test_health_check_returns_healthy_status(self, mock_settings):
         """Test health check endpoint returns healthy status."""
         mock_settings.return_value = MagicMock(openai_api_key="test_key")
@@ -48,7 +48,7 @@ class TestHealthCheckEndpoint:
         assert data["version"] == "1.0.0"
         assert data["openai_configured"] is True
 
-    @patch('src.main.get_settings')
+    @patch("src.main.get_settings")
     def test_health_check_without_openai_key(self, mock_settings):
         """Test health check when OpenAI key is not configured."""
         mock_settings.return_value = MagicMock(openai_api_key="")
@@ -64,7 +64,7 @@ class TestHealthCheckEndpoint:
 class TestRootEndpoint:
     """Test suite for root endpoint."""
 
-    @patch('src.main.get_settings')
+    @patch("src.main.get_settings")
     def test_root_endpoint_returns_welcome_message(self, mock_settings):
         """Test root endpoint returns welcome information."""
         mock_settings.return_value = MagicMock(openai_api_key="test_key")
@@ -82,7 +82,7 @@ class TestRootEndpoint:
 class TestMiddlewareConfiguration:
     """Test suite for middleware configuration."""
 
-    @patch('src.main.get_settings')
+    @patch("src.main.get_settings")
     def test_cors_middleware_configured(self, mock_settings):
         """Test that CORS middleware allows expected origins."""
         mock_settings.return_value = MagicMock(openai_api_key="test_key")
@@ -90,10 +90,7 @@ class TestMiddlewareConfiguration:
         with TestClient(app) as client:
             response = client.options(
                 "/health",
-                headers={
-                    "Origin": "http://localhost:3000",
-                    "Access-Control-Request-Method": "GET"
-                }
+                headers={"Origin": "http://localhost:3000", "Access-Control-Request-Method": "GET"},
             )
 
         # CORS should allow the request

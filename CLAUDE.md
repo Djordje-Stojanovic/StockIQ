@@ -1,6 +1,14 @@
 ### KISS (Keep It Simple, Stupid)
 Simplicity should be a key goal in design. Choose straightforward solutions over complex ones whenever possible. Simple solutions are easier to understand, maintain, and debug.
 
+### Python Execution on Windows
+**CRITICAL: Use `py` command to run Python on this Windows system**
+- Run Python: `py script.py`
+- Run modules: `py -m pytest`
+- Install packages: `py -m pip install package_name`
+- Do NOT use `python` or `python.exe` directly - it will fail
+- Do NOT create new virtual environments - use existing setup
+
 # CRITICAL: ARCHON-FIRST RULE - READ THIS FIRST
   BEFORE doing ANYTHING else, when you see ANY knowledge-based scenario:
   1. STOP and check if Archon MCP server is available

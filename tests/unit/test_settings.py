@@ -54,7 +54,7 @@ class TestSettingsModel:
             app_name="CustomStockIQ",
             port=9000,
             debug=False,
-            max_tokens_per_request=2000
+            max_tokens_per_request=2000,
         )
 
         assert settings.app_name == "CustomStockIQ"
@@ -92,7 +92,7 @@ class TestSettingsEnvironmentLoading:
 class TestGetSettingsFunction:
     """Test suite for get_settings function."""
 
-    @patch('config.settings.Settings')
+    @patch("config.settings.Settings")
     def test_get_settings_returns_settings_instance(self, mock_settings_class):
         """Test that get_settings returns a Settings instance."""
         mock_instance = MagicMock()
@@ -106,7 +106,7 @@ class TestGetSettingsFunction:
         assert result == mock_instance
         mock_settings_class.assert_called_once()
 
-    @patch('config.settings.Settings')
+    @patch("config.settings.Settings")
     def test_get_settings_caches_result(self, mock_settings_class):
         """Test that get_settings caches the result using lru_cache."""
         mock_instance = MagicMock()

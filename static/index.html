@@ -22,11 +22,25 @@
         
         <section class="input-section">
             <h2>Stock Analysis</h2>
-            <div class="ticker-input">
-                <label for="ticker">Enter Stock Ticker:</label>
-                <input type="text" id="ticker" placeholder="e.g., AAPL, MSFT, GOOGL">
-                <button id="analyze-btn">Analyze Stock</button>
-            </div>
+            <form id="ticker-form" class="ticker-input-form">
+                <div class="ticker-input">
+                    <label for="ticker">Enter Stock Ticker:</label>
+                    <input 
+                        type="text" 
+                        id="ticker" 
+                        name="ticker"
+                        placeholder="e.g., ASML, COST, MSFT"
+                        maxlength="6"
+                        pattern="[A-Za-z]{1,6}"
+                        title="Ticker must be 1-6 letters only"
+                        required
+                        autocomplete="off"
+                        autofocus>
+                    <button type="submit" id="analyze-btn">Analyze Stock</button>
+                </div>
+                <div id="ticker-error" class="error-message" style="display: none;"></div>
+                <div id="ticker-feedback" class="feedback-message"></div>
+            </form>
         </section>
         
         <section class="results-section">

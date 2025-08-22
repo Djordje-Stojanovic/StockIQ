@@ -13,6 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from config.settings import get_settings
+from src.routers import assessment
 
 
 @asynccontextmanager
@@ -60,6 +61,9 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    # Include routers
+    app.include_router(assessment.router)
 
     # Mount static files
     app.mount("/static", StaticFiles(directory="static"), name="static")

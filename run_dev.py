@@ -25,7 +25,7 @@ def main():
         port=settings.port,
         reload=settings.reload,
         reload_dirs=["src", "config", "static"],
-        log_level="debug" if settings.debug else "info"
+        log_level="debug" if settings.debug else "info",
     )
 
 

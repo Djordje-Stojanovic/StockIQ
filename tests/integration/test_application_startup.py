@@ -41,10 +41,7 @@ class TestApplicationStartup:
     def test_cors_headers_present(self):
         """Test that CORS headers are properly configured."""
         with TestClient(app) as client:
-            response = client.get(
-                "/health",
-                headers={"Origin": "http://localhost:3000"}
-            )
+            response = client.get("/health", headers={"Origin": "http://localhost:3000"})
 
         assert response.status_code == 200
         # Check for CORS headers (may vary based on CORS middleware implementation)
@@ -129,4 +126,6 @@ class TestDirectoryStructureIntegration:
         ]
 
         for init_file in init_files:
-            assert os.path.exists(init_file), f"Required __init__.py file {init_file} does not exist"
+            assert os.path.exists(init_file), (
+                f"Required __init__.py file {init_file} does not exist"
+            )

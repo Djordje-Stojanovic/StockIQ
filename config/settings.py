@@ -20,66 +20,39 @@ class Settings(BaseSettings):
     """
 
     # OpenAI API Configuration
-    openai_api_key: str = Field(
-        ...,
-        description="OpenAI API key for agent functionality"
-    )
+    openai_api_key: str = Field(..., description="OpenAI API key for agent functionality")
 
     # Application Configuration
-    app_name: str = Field(
-        default="StockIQ",
-        description="Application name"
-    )
+    app_name: str = Field(default="StockIQ", description="Application name")
 
-    app_version: str = Field(
-        default="1.0.0",
-        description="Application version"
-    )
+    app_version: str = Field(default="1.0.0", description="Application version")
 
     # Server Configuration
-    host: str = Field(
-        default="127.0.0.1",
-        description="Server host address"
-    )
+    host: str = Field(default="127.0.0.1", description="Server host address")
 
-    port: int = Field(
-        default=8000,
-        description="Server port number"
-    )
+    port: int = Field(default=8000, description="Server port number")
 
-    debug: bool = Field(
-        default=True,
-        description="Enable debug mode for development"
-    )
+    debug: bool = Field(default=True, description="Enable debug mode for development")
 
     # Research Database Configuration
     research_db_path: str = Field(
-        default="research_database",
-        description="Path to research database directory"
+        default="research_database", description="Path to research database directory"
     )
 
     # Temporary Files Configuration
-    tmp_path: str = Field(
-        default="tmp",
-        description="Path to temporary files directory"
-    )
+    tmp_path: str = Field(default="tmp", description="Path to temporary files directory")
 
     # Agent Configuration
     max_tokens_per_request: int = Field(
-        default=4000,
-        description="Maximum tokens per OpenAI API request"
+        default=4000, description="Maximum tokens per OpenAI API request"
     )
 
     agent_temperature: float = Field(
-        default=0.7,
-        description="Temperature setting for OpenAI agents"
+        default=0.7, description="Temperature setting for OpenAI agents"
     )
 
     # Development Configuration
-    reload: bool = Field(
-        default=True,
-        description="Enable auto-reload for development"
-    )
+    reload: bool = Field(default=True, description="Enable auto-reload for development")
 
     model_config = {
         "env_file": ".env",
