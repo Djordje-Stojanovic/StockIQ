@@ -3,7 +3,7 @@
 ## Functional
 
 **FR1:** The system must accept ticker symbols (e.g., ASML, COST) as input through a FastAPI web interface
-**FR2:** The Assessment Agent must present exactly 20 questions to evaluate user expertise across financial/valuation/strategic/risk domains
+**FR2:** The Assessment Agent must dynamically generate exactly 20 contextual questions (2 per difficulty level 1-10) to evaluate user expertise across general investing knowledge, ticker-specific understanding, sector expertise, and analytical sophistication
 **FR3:** The system must calculate user expertise level on a 1-10 scale based on assessment responses
 **FR4:** The Valuation Expert agent must generate DCF models, financial ratio analysis, and quantitative valuation metrics
 **FR5:** The Strategic Analyst agent must analyze competitive positioning, market dynamics, and strategic risks/opportunities  

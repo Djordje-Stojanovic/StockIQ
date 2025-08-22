@@ -2,7 +2,7 @@
 
 import logging
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -35,8 +35,8 @@ class SessionManager:
             "user_expertise_level": None,
             "assessment_responses": [],
             "report_complexity": None,
-            "created_at": datetime.utcnow(),
-            "updated_at": datetime.utcnow(),
+            "created_at": datetime.now(UTC),
+            "updated_at": datetime.now(UTC),
             "status": "active",
             "research_database_path": f"research_database/sessions/{session_id}/{ticker_symbol}",
         }
@@ -83,9 +83,43 @@ class SessionManager:
             return None
 
         session.update(updates)
-        session["updated_at"] = datetime.utcnow()
+        session["updated_at"] = datetime.now(UTC)
 
         logger.info(f"Updated session {session_id} with {len(updates)} fields")
+
+        return session
+
+    def update_session_assessment(
+        self, session_id: str, assessment_result: Any
+    ) -> dict[str, Any] | None:
+        """
+        Update session with assessment results.
+
+        Args:
+            session_id: Unique session identifier
+            assessment_result: AssessmentResult object
+
+        Returns:
+            Updated session if found, None otherwise
+        """
+        session = self._sessions.get(session_id)
+        if not session:
+            logger.warning(f"Cannot update assessment for non-existent session {session_id}")
+            return None
+
+        session.update(
+            {
+                "user_expertise_level": assessment_result.expertise_level,
+                "assessment_result": assessment_result,
+                "report_complexity": assessment_result.report_complexity,
+                "updated_at": datetime.now(UTC),
+            }
+        )
+
+        logger.info(
+            f"Updated session {session_id} with assessment: "
+            f"Level {assessment_result.expertise_level}/10"
+        )
 
         return session
 

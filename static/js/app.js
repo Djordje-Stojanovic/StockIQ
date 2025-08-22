@@ -13,6 +13,9 @@ class StockIQApp {
         this.errorEl = document.getElementById('ticker-error');
         this.feedbackEl = document.getElementById('ticker-feedback');
         
+        // Initialize assessment manager
+        this.assessmentManager = new AssessmentManager();
+        
         this.init();
     }
     
@@ -153,22 +156,43 @@ class StockIQApp {
      */
     handleSuccessfulValidation(data) {
         this.clearMessages();
+        
+        // Store session data
+        sessionStorage.setItem('currentSession', JSON.stringify({
+            sessionId: data.session_id,
+            tickerSymbol: data.ticker_symbol,
+            currentStep: 'assessment',
+            status: data.status
+        }));
+        
+        // Show transition message and start assessment
         this.resultsContainer.innerHTML = `
             <div class="success-message" style="color: #27ae60; padding: 1rem; background: #d5f4e6; border-radius: 4px; border-left: 4px solid #27ae60;">
                 <h3>Session Initialized</h3>
                 <p><strong>Ticker:</strong> ${data.ticker_symbol}</p>
                 <p><strong>Session ID:</strong> ${data.session_id}</p>
                 <p><strong>Status:</strong> ${data.status}</p>
-                <p style="margin-top: 1rem;">Assessment functionality will be implemented in the next story.</p>
+                <div style="margin-top: 1rem; text-align: center;">
+                    <button id="start-assessment-btn" class="primary-btn" style="padding: 0.75rem 1.5rem; background: linear-gradient(135deg, #2980b9, #3498db); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">
+                        Start Investment Expertise Assessment
+                    </button>
+                </div>
             </div>
         `;
         
-        sessionStorage.setItem('currentSession', JSON.stringify({
-            sessionId: data.session_id,
-            tickerSymbol: data.ticker_symbol,
-            currentStep: 'ticker',
-            status: data.status
-        }));
+        // Add event listener for starting assessment
+        document.getElementById('start-assessment-btn').addEventListener('click', () => {
+            this.startAssessment(data.session_id, data.ticker_symbol);
+        });
+    }
+    
+    /**
+     * Start the assessment process
+     * @param {string} sessionId - Session identifier
+     * @param {string} ticker - Stock ticker symbol
+     */
+    startAssessment(sessionId, ticker) {
+        this.assessmentManager.startAssessment(sessionId, ticker);
     }
     
     /**

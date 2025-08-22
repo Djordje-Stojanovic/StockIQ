@@ -17,14 +17,14 @@
 
 ## Assessment Agent
 
-**Responsibility:** Evaluates user financial expertise through 20 structured questions and determines appropriate report complexity level
+**Responsibility:** Dynamically generates 20 contextual questions tailored to specific ticker and evaluates user financial expertise across general investing knowledge, ticker-specific understanding, sector expertise, and analytical sophistication to determine appropriate report complexity level
 
 **Key Interfaces:**
-- generate_assessment_questions() -> List[AssessmentQuestion]
-- calculate_expertise_level(responses: List[AssessmentResponse]) -> int
+- generate_contextual_assessment_questions(ticker: str) -> List[AssessmentQuestion]
+- evaluate_user_expertise(questions: List[AssessmentQuestion], responses: List[AssessmentResponse], ticker: str) -> AssessmentResult
 - determine_report_complexity(expertise_level: int) -> str
 
-**Dependencies:** OpenAI API, Assessment question database, Scoring algorithms
+**Dependencies:** OpenAI API with unified question generation + evaluation prompt framework
 
 **Technology Stack:** FastAPI endpoint, OpenAI SDK, Pydantic models for validation
 

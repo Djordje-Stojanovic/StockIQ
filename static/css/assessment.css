@@ -1,0 +1,410 @@
+/**
+ * Assessment Interface Styling
+ * Institutional-grade design for investment expertise assessment
+ */
+
+/* Assessment Container */
+.assessment-container {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e1e8ed;
+}
+
+/* Assessment Header */
+.assessment-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid #f5f7fa;
+}
+
+.assessment-header h2 {
+    color: #2c3e50;
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+/* Progress Indicator */
+.progress-container {
+    margin: 1.5rem 0;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #ecf0f1;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3498db, #2980b9);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+    width: 5%;
+}
+
+.progress-text {
+    text-align: center;
+    font-size: 0.9rem;
+    color: #7f8c8d;
+    font-weight: 500;
+}
+
+/* Question Container */
+.question-container {
+    margin-bottom: 2rem;
+}
+
+.question-content {
+    background: #f8fafc;
+    padding: 2rem;
+    border-radius: 6px;
+    border-left: 4px solid #3498db;
+    margin-bottom: 2rem;
+}
+
+.question-text {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: #2c3e50;
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+}
+
+/* Question Options */
+.question-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.option-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background: #ffffff;
+    border: 2px solid #e1e8ed;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.option-item:hover {
+    border-color: #3498db;
+    background: #f8fafc;
+    transform: translateY(-1px);
+}
+
+.option-item input[type="radio"] {
+    margin-right: 0.75rem;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.option-item label {
+    flex: 1;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: #34495e;
+}
+
+.option-item input[type="radio"]:checked + label {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.option-item:has(input[type="radio"]:checked) {
+    border-color: #2980b9;
+    background: #e8f4fd;
+}
+
+/* Navigation Buttons */
+.question-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #ecf0f1;
+}
+
+.nav-btn, .submit-btn, .primary-btn, .secondary-btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: none;
+}
+
+.nav-btn {
+    background: #ecf0f1;
+    color: #7f8c8d;
+    min-width: 100px;
+}
+
+.nav-btn:hover:not(:disabled) {
+    background: #bdc3c7;
+    color: #2c3e50;
+}
+
+.nav-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.submit-btn, .primary-btn {
+    background: linear-gradient(135deg, #2980b9, #3498db);
+    color: white;
+    font-weight: 600;
+    min-width: 150px;
+}
+
+.submit-btn:hover, .primary-btn:hover {
+    background: linear-gradient(135deg, #21618c, #2980b9);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+}
+
+.secondary-btn {
+    background: #95a5a6;
+    color: white;
+    min-width: 120px;
+}
+
+.secondary-btn:hover {
+    background: #7f8c8d;
+    transform: translateY(-1px);
+}
+
+/* Assessment Results */
+.assessment-results {
+    text-align: center;
+    padding: 2rem;
+}
+
+.assessment-results h3 {
+    color: #27ae60;
+    font-size: 2rem;
+    margin-bottom: 2rem;
+}
+
+.expertise-level {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: #f8fafc;
+    border-radius: 6px;
+    border-left: 4px solid #27ae60;
+}
+
+.expertise-level h4 {
+    color: #2c3e50;
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+}
+
+.level-bar {
+    width: 100%;
+    height: 12px;
+    background: #ecf0f1;
+    border-radius: 6px;
+    overflow: hidden;
+    margin: 1rem 0;
+}
+
+.level-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #27ae60, #2ecc71);
+    border-radius: 6px;
+    transition: width 0.5s ease;
+}
+
+.report-complexity {
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background: #e8f4fd;
+    border-radius: 6px;
+    border-left: 4px solid #3498db;
+}
+
+.report-complexity p {
+    color: #2c3e50;
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin: 0;
+}
+
+.explanation {
+    margin-bottom: 2rem;
+    text-align: left;
+    padding: 1.5rem;
+    background: #fdf6e3;
+    border-radius: 6px;
+    border-left: 4px solid #f39c12;
+}
+
+.explanation h4 {
+    color: #d35400;
+    margin-bottom: 1rem;
+}
+
+.explanation p {
+    color: #2c3e50;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.next-steps {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 2rem;
+}
+
+/* Loading and Error States */
+.loading-container, .error-container {
+    text-align: center;
+    padding: 3rem;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #ecf0f1;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.error-container {
+    background: #fdf2f2;
+    border: 1px solid #f56565;
+    border-radius: 6px;
+    color: #c53030;
+}
+
+.error-container h3 {
+    color: #c53030;
+    margin-bottom: 1rem;
+}
+
+.error-container button {
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    background: #e53e3e;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.error-container button:hover {
+    background: #c53030;
+}
+
+/* Analysis Ready State */
+.analysis-ready {
+    background: #f0fff4;
+    border: 2px solid #27ae60;
+    border-radius: 8px;
+    padding: 2rem;
+    margin: 1rem 0;
+    color: #155724;
+}
+
+.analysis-ready h3 {
+    color: #27ae60;
+    margin-bottom: 1rem;
+}
+
+.analysis-ready p {
+    margin: 0.5rem 0;
+    font-size: 1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .assessment-container {
+        margin: 1rem;
+        padding: 1rem;
+    }
+    
+    .assessment-header h2 {
+        font-size: 1.5rem;
+    }
+    
+    .question-content {
+        padding: 1rem;
+    }
+    
+    .question-text {
+        font-size: 1rem;
+    }
+    
+    .option-item {
+        padding: 0.75rem;
+    }
+    
+    .question-navigation {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .nav-btn, .submit-btn, .primary-btn, .secondary-btn {
+        width: 100%;
+    }
+    
+    .next-steps {
+        flex-direction: column;
+    }
+}
+
+/* Accessibility Improvements */
+@media (prefers-reduced-motion: reduce) {
+    .progress-fill,
+    .level-fill,
+    .option-item,
+    .nav-btn,
+    .submit-btn,
+    .primary-btn,
+    .secondary-btn {
+        transition: none;
+    }
+    
+    .loading-spinner {
+        animation: none;
+    }
+}
+
+/* Focus States for Accessibility */
+.option-item:focus-within,
+.nav-btn:focus,
+.submit-btn:focus,
+.primary-btn:focus,
+.secondary-btn:focus {
+    outline: 3px solid #3498db;
+    outline-offset: 2px;
+}
+
+.option-item input[type="radio"]:focus {
+    outline: none;
+}

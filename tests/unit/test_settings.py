@@ -43,7 +43,7 @@ class TestSettingsModel:
 
         assert settings.research_db_path == "research_database"
         assert settings.tmp_path == "tmp"
-        assert settings.max_tokens_per_request == 4000
+        assert settings.max_tokens_per_request == 8000  # Updated for GPT-5 compatibility
         assert settings.agent_temperature == 0.7
         assert settings.reload is True
 

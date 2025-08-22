@@ -1,6 +1,6 @@
 # Epic 1: Foundation & Core Assessment System
 
-**Epic Goal:** Establish complete project foundation with FastAPI infrastructure, implement sophisticated 20-question assessment system, and deliver working ticker input with accurate expertise level calculation (1-10 scale). Users can input any company ticker, complete the assessment, and receive their expertise score with system validation.
+**Epic Goal:** Establish complete project foundation with FastAPI infrastructure, implement AI-powered contextual assessment system, and deliver working ticker input with accurate expertise level calculation (1-10 scale). Users can input any company ticker, complete dynamically generated ticker-specific assessment, and receive their expertise score with system validation.
 
 ## Story 1.1: Project Setup & FastAPI Foundation
 As a developer,
@@ -34,10 +34,10 @@ I want to complete a sophisticated 20-question assessment of my financial expert
 so that the system can adapt its analysis depth to my knowledge level.
 
 ### Acceptance Criteria
-1. Assessment agent presents exactly 20 questions covering financial/valuation/strategic/risk domains
+1. Assessment agent dynamically generates exactly 20 contextual questions (2 per difficulty level 1-10) tailored to the specific ticker and covering general investing knowledge, ticker-specific understanding, sector expertise, and analytical sophistication
 2. Questions are presented one at a time with clear progress indication (Question 5 of 20)
-3. Answer scoring system calculates expertise level on 1-10 scale with transparent logic
-4. Question difficulty progresses from basic to advanced across domains
+3. Answer scoring system calculates expertise level on 1-10 scale with transparent logic based on contextual question difficulty
+4. Question difficulty progresses from basic concepts (Level 1: knows S&P 500 exists) to expert analysis (Level 10: top-tier analyst knowledge of specific company)
 5. User can navigate back to previous questions during assessment
 6. Assessment completion triggers expertise level calculation and display
 7. Assessment results are saved to session context for downstream agents

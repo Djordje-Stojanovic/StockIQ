@@ -121,3 +121,140 @@ class TestAssessmentAPI:
 
         session2 = client.get(f"/api/assessment/session/{session2_id}")
         assert session2.json()["ticker_symbol"] == "TSLA"
+
+    def test_get_assessment_questions_success(self, client):
+        """Test getting assessment questions for valid session."""
+        # First create a session
+        create_response = client.post("/api/assessment/start", json={"ticker_symbol": "AAPL"})
+        session_id = create_response.json()["session_id"]
+
+        # Get assessment questions
+        response = client.get(f"/api/assessment/questions?session_id={session_id}")
+
+        assert response.status_code == 200
+        data = response.json()
+
+        assert "questions" in data
+        assert len(data["questions"]) == 20
+
+        # Verify question structure
+        question = data["questions"][0]
+        assert "id" in question
+        assert "difficulty_level" in question
+        assert "category" in question
+        assert "question" in question
+        assert "options" in question
+        assert len(question["options"]) == 4
+        assert "ticker_context" in question
+        assert question["ticker_context"] == "AAPL"
+
+    def test_get_assessment_questions_invalid_session(self, client):
+        """Test getting questions for invalid session."""
+        response = client.get("/api/assessment/questions?session_id=invalid-session-id")
+
+        assert response.status_code == 404
+
+    def test_submit_assessment_success(self, client):
+        """Test submitting assessment responses successfully."""
+        # Create session and get questions
+        create_response = client.post("/api/assessment/start", json={"ticker_symbol": "AAPL"})
+        session_id = create_response.json()["session_id"]
+
+        questions_response = client.get(f"/api/assessment/questions?session_id={session_id}")
+        questions = questions_response.json()["questions"]
+
+        # Create sample responses
+        responses = []
+        for i, question in enumerate(questions):
+            responses.append(
+                {
+                    "question_id": question["id"],
+                    "selected_option": 0,  # Always select first option
+                    "correct_option": question["correct_answer_index"],
+                    "time_taken": 15.0 + i * 2.0,  # Varying time
+                }
+            )
+
+        # Submit responses
+        submit_data = {"session_id": session_id, "responses": responses}
+
+        response = client.post("/api/assessment/submit", json=submit_data)
+
+        assert response.status_code == 200
+        data = response.json()
+
+        assert "expertise_level" in data
+        assert 1 <= data["expertise_level"] <= 10
+        assert "report_complexity" in data
+        assert data["report_complexity"] in ["comprehensive", "executive"]
+        assert "explanation" in data
+        assert "ticker_context" in data
+        assert data["ticker_context"] == "AAPL"
+
+    def test_submit_assessment_invalid_session(self, client):
+        """Test submitting responses for invalid session."""
+        submit_data = {
+            "session_id": "invalid-session-id",
+            "responses": [
+                {"question_id": 1, "selected_option": 0, "correct_option": 0, "time_taken": 15.0}
+            ],
+        }
+
+        response = client.post("/api/assessment/submit", json=submit_data)
+        assert response.status_code == 404
+
+    def test_submit_assessment_incomplete_responses(self, client):
+        """Test submitting incomplete responses."""
+        # Create session
+        create_response = client.post("/api/assessment/start", json={"ticker_symbol": "AAPL"})
+        session_id = create_response.json()["session_id"]
+
+        # Submit only partial responses (less than 20)
+        submit_data = {
+            "session_id": session_id,
+            "responses": [
+                {"question_id": 1, "selected_option": 0, "correct_option": 0, "time_taken": 15.0}
+            ],
+        }
+
+        response = client.post("/api/assessment/submit", json=submit_data)
+        assert response.status_code == 400
+
+    def test_complete_assessment_workflow(self, client):
+        """Test complete assessment workflow from start to finish."""
+        # 1. Start assessment
+        start_response = client.post("/api/assessment/start", json={"ticker_symbol": "MSFT"})
+        assert start_response.status_code == 200
+        session_id = start_response.json()["session_id"]
+
+        # 2. Get questions
+        questions_response = client.get(f"/api/assessment/questions?session_id={session_id}")
+        assert questions_response.status_code == 200
+        questions = questions_response.json()["questions"]
+        assert len(questions) == 20
+
+        # 3. Submit responses
+        responses = []
+        for question in questions:
+            responses.append(
+                {
+                    "question_id": question["id"],
+                    "selected_option": question["correct_answer_index"],  # All correct
+                    "correct_option": question["correct_answer_index"],
+                    "time_taken": 20.0,
+                }
+            )
+
+        submit_response = client.post(
+            "/api/assessment/submit", json={"session_id": session_id, "responses": responses}
+        )
+        assert submit_response.status_code == 200
+
+        # 4. Verify session updated with assessment result
+        final_session = client.get(f"/api/assessment/session/{session_id}")
+        assert final_session.status_code == 200
+        session_data = final_session.json()
+
+        # Should have assessment responses and result
+        assert "assessment_responses" in session_data
+        assert len(session_data["assessment_responses"]) == 20

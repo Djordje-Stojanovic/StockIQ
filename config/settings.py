@@ -44,11 +44,21 @@ class Settings(BaseSettings):
 
     # Agent Configuration
     max_tokens_per_request: int = Field(
-        default=4000, description="Maximum tokens per OpenAI API request"
+        default=8000, description="Maximum tokens per OpenAI API request (increased for GPT-5 reasoning tokens)"
     )
 
     agent_temperature: float = Field(
         default=0.7, description="Temperature setting for OpenAI agents"
+    )
+
+    # OpenAI Model Configuration
+    openai_complex_model: str = Field(
+        default="gpt-5",
+        description="GPT-5 model for complex tasks (question generation, assessment)",
+    )
+
+    openai_simple_model: str = Field(
+        default="gpt-5-mini", description="GPT-5-mini model for simple tasks"
     )
 
     # Development Configuration

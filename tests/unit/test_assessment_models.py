@@ -104,32 +104,43 @@ class TestAssessmentQuestion:
     def test_valid_question_creation(self):
         """Test creating a valid assessment question."""
         question = AssessmentQuestion(
-            question_id="q1",
-            question_text="What is your investment experience?",
+            id=1,
+            difficulty_level=5,
+            category="general_investing",
+            question="What is your investment experience?",
             options=["< 1 year", "1-3 years", "3-5 years", "> 5 years"],
-            category="experience",
+            correct_answer_index=2,
+            ticker_context="AAPL",
+            weight=1.5,
         )
 
-        assert question.question_id == "q1"
+        assert question.id == 1
+        assert question.difficulty_level == 5
+        assert question.category == "general_investing"
         assert len(question.options) == 4
-        assert question.weight == 1.0
+        assert question.correct_answer_index == 2
+        assert question.ticker_context == "AAPL"
+        assert question.weight == 1.5
 
     def test_weight_validation(self):
         """Test weight bounds validation."""
         question_data = {
-            "question_id": "q1",
-            "question_text": "Test question",
-            "options": ["A", "B"],
-            "category": "test",
+            "id": 1,
+            "difficulty_level": 5,
+            "category": "general_investing",
+            "question": "Test question",
+            "options": ["A", "B", "C", "D"],
+            "correct_answer_index": 0,
+            "ticker_context": "AAPL",
         }
 
         # Valid weights
-        for weight in [0, 1, 5, 10]:
+        for weight in [0.1, 1.0, 1.5, 2.0]:
             question = AssessmentQuestion(**question_data, weight=weight)
             assert question.weight == weight
 
-        # Invalid weights
-        for weight in [-1, 11]:
+        # Invalid weights (must be > 0 and <= 2.0)
+        for weight in [0, -1, 2.1, 3.0]:
             with pytest.raises(ValidationError):
                 AssessmentQuestion(**question_data, weight=weight)
 
@@ -139,8 +150,16 @@ class TestAssessmentResponse:
 
     def test_valid_response_creation(self):
         """Test creating a valid assessment response."""
-        response = AssessmentResponse(question_id="q1", answer="1-3 years")
+        response = AssessmentResponse(
+            question_id=1,
+            selected_option=2,
+            correct_option=3,
+            time_taken=15.5,
+            partial_credit=0.5,
+        )
 
-        assert response.question_id == "q1"
-        assert response.answer == "1-3 years"
-        assert isinstance(response.timestamp, datetime)
+        assert response.question_id == 1
+        assert response.selected_option == 2
+        assert response.correct_option == 3
+        assert response.time_taken == 15.5
+        assert response.partial_credit == 0.5
