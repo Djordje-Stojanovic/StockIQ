@@ -6,6 +6,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from ..models.assessment import UserSession
+
 logger = logging.getLogger(__name__)
 
 
@@ -156,6 +158,48 @@ class SessionManager:
         logger.debug(f"Found {len(active)} active sessions")
         return active
 
+    def get_session_as_model(self, session_id: str) -> UserSession | None:
+        """
+        Get session as a UserSession model object.
+        
+        Args:
+            session_id: Unique session identifier
+            
+        Returns:
+            UserSession object if found, None otherwise
+        """
+        session_dict = self.get_session(session_id)
+        if not session_dict:
+            return None
+        
+        try:
+            # Convert dictionary to UserSession model
+            return UserSession(**session_dict)
+        except Exception as e:
+            logger.error(f"Error converting session {session_id} to UserSession model: {str(e)}")
+            return None
+
+    def update_session_model(self, session: UserSession) -> UserSession | None:
+        """
+        Update session using a UserSession model.
+        
+        Args:
+            session: UserSession model object
+            
+        Returns:
+            Updated UserSession if successful, None otherwise
+        """
+        try:
+            # Convert model to dictionary and update
+            session_dict = session.model_dump()
+            updated = self.update_session(session.session_id, session_dict)
+            if updated:
+                return UserSession(**updated)
+            return None
+        except Exception as e:
+            logger.error(f"Error updating session {session.session_id} from model: {str(e)}")
+            return None
+
     def _prepare_research_directory(self, path: str) -> None:
         """
         Prepare research database directory structure.
@@ -174,3 +218,15 @@ class SessionManager:
             logger.debug(f"Prepared research directory: {path}")
         except Exception as e:
             logger.error(f"Failed to prepare research directory {path}: {str(e)}")
+
+
+# Global session manager instance
+_session_manager_instance: SessionManager | None = None
+
+
+def get_session_manager() -> SessionManager:
+    """Get the global session manager instance."""
+    global _session_manager_instance
+    if _session_manager_instance is None:
+        _session_manager_instance = SessionManager()
+    return _session_manager_instance

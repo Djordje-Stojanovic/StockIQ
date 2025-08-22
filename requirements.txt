@@ -19,6 +19,9 @@ python-dotenv>=1.0.0
 # Markdown processing for research database
 markdown>=3.5.0
 
+# YAML processing for research metadata
+PyYAML>=6.0
+
 # PDF generation (weasyprint as specified in AC)
 weasyprint>=60.0
 
