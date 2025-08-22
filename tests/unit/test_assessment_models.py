@@ -62,7 +62,7 @@ class TestUserSessionModel:
         }
 
         # Valid complexities
-        for complexity in ["comprehensive", "executive"]:
+        for complexity in ["foundational", "educational", "intermediate", "advanced", "executive"]:
             session = UserSession(**session_data, report_complexity=complexity)
             assert session.report_complexity == complexity
 

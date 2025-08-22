@@ -204,12 +204,14 @@ Please generate the questions now.""",
         try:
             logger.info(f"Evaluating user expertise for ticker: {ticker}")
 
-            # Calculate basic scores by category
+            # Calculate basic scores by category and overall percentage
             score_breakdown = self._calculate_category_scores(questions, responses)
+            percentage_score = self._calculate_score_percentage(questions, responses)
+            suggested_level = self._map_percentage_to_expertise_level(percentage_score)
 
             # Create evaluation context for AI assessment
             evaluation_context = self._create_evaluation_context(
-                questions, responses, score_breakdown, ticker
+                questions, responses, score_breakdown, ticker, percentage_score, suggested_level
             )
 
             # Define schema for AI evaluation response
@@ -217,13 +219,11 @@ Please generate the questions now.""",
                 "type": "object",
                 "properties": {
                     "expertise_level": {"type": "integer", "minimum": 1, "maximum": 10},
-                    "report_complexity": {"type": "string", "enum": ["comprehensive", "executive"]},
                     "explanation": {"type": "string", "minLength": 100, "maxLength": 1000},
                     "confidence_score": {"type": "number", "minimum": 0.0, "maximum": 1.0},
                 },
                 "required": [
                     "expertise_level",
-                    "report_complexity",
                     "explanation",
                     "confidence_score",
                 ],
@@ -244,10 +244,13 @@ Please generate the questions now.""",
                 temperature=None,  # Use default temperature for GPT-5 compatibility
             )
 
+            # Map expertise level to appropriate report complexity
+            complexity = self._determine_report_complexity(evaluation_data["expertise_level"])
+
             result = AssessmentResult(
                 session_id="",  # Will be set by calling code
                 expertise_level=evaluation_data["expertise_level"],
-                report_complexity=evaluation_data["report_complexity"],
+                report_complexity=complexity,
                 explanation=evaluation_data["explanation"],
                 ticker_context=ticker,
                 score_breakdown=score_breakdown,
@@ -291,6 +294,8 @@ Please generate the questions now.""",
         responses: list[AssessmentResponse],
         score_breakdown: dict,
         ticker: str,
+        percentage_score: float,
+        suggested_level: int,
     ) -> str:
         """Create detailed context for AI evaluation."""
         response_dict = {r.question_id: r for r in responses}
@@ -299,6 +304,20 @@ Please generate the questions now.""",
             f"ASSESSMENT EVALUATION FOR TICKER: {ticker}",
             f"Total Questions: {len(questions)}",
             f"Total Responses: {len(responses)}",
+            f"Overall Score: {percentage_score:.1f}%",
+            f"Baseline-Adjusted Suggested Level: {suggested_level}/10",
+            "",
+            "ADJUSTED SCORING SCALE (ACCOUNTING FOR 25% RANDOM GUESSING):",
+            "- Level 1: 0-27% (Random guessing or below)",
+            "- Level 2: 28-35% (Slightly above random)",
+            "- Level 3: 36-43% (Basic knowledge)",
+            "- Level 4: 44-51% (Developing understanding)",
+            "- Level 5: 52-59% (Intermediate knowledge)",
+            "- Level 6: 60-67% (Good understanding)",
+            "- Level 7: 68-75% (Advanced knowledge)",
+            "- Level 8: 76-83% (Sophisticated analysis)",
+            "- Level 9: 84-91% (Expert level)",
+            "- Level 10: 92-100% (Top-tier analyst)",
             "",
             "SCORE BREAKDOWN BY CATEGORY:",
         ]
@@ -323,6 +342,126 @@ Please generate the questions now.""",
                 )
 
         return "\n".join(context_parts)
+
+    def _determine_report_complexity(self, expertise_level: int) -> str:
+        """
+        Map expertise level to appropriate report complexity.
+
+        Args:
+            expertise_level: User expertise level (1-10)
+
+        Returns:
+            Report complexity type for appropriate report length
+        """
+        if expertise_level <= 2:
+            return "foundational"  # 250-300 pages
+        elif expertise_level <= 4:
+            return "educational"  # 150-200 pages
+        elif expertise_level <= 6:
+            return "intermediate"  # 80-100 pages
+        elif expertise_level <= 8:
+            return "advanced"  # 50-60 pages
+        else:  # 9-10
+            return "executive"  # 10-20 pages
+
+    def get_report_complexity_info(self, complexity: str) -> dict:
+        """
+        Get detailed information about report complexity levels.
+
+        Args:
+            complexity: Report complexity type
+
+        Returns:
+            Dictionary with page count and description
+        """
+        complexity_mapping = {
+            "foundational": {
+                "page_range": "250-300",
+                "description": "Comprehensive educational reports with maximum detail and fundamentals",
+                "target_audience": "Complete novices needing extensive education",
+            },
+            "educational": {
+                "page_range": "150-200", 
+                "description": "Detailed explanatory reports with examples and context",
+                "target_audience": "Basic understanding users requiring detailed explanations",
+            },
+            "intermediate": {
+                "page_range": "80-100",
+                "description": "Balanced analysis with moderate complexity and context",
+                "target_audience": "Intermediate knowledge users comfortable with some advanced concepts",
+            },
+            "advanced": {
+                "page_range": "50-60",
+                "description": "Sophisticated analysis reports with minimal educational content",
+                "target_audience": "Advanced users appreciating sophisticated analysis",
+            },
+            "executive": {
+                "page_range": "10-20",
+                "description": "Expert-level executive summaries with advanced insights",
+                "target_audience": "Expert-level users preferring concise summaries",
+            },
+        }
+        return complexity_mapping.get(complexity, {})
+
+    def _calculate_score_percentage(self, questions: list[AssessmentQuestion], responses: list[AssessmentResponse]) -> float:
+        """
+        Calculate the percentage score from weighted responses.
+        
+        Args:
+            questions: List of assessment questions
+            responses: List of user responses
+            
+        Returns:
+            Percentage score (0-100)
+        """
+        total_possible_points = sum(q.weight for q in questions)
+        earned_points = 0.0
+        
+        response_dict = {r.question_id: r for r in responses}
+        
+        for question in questions:
+            response = response_dict.get(question.id)
+            if response:
+                if response.selected_option == response.correct_option:
+                    earned_points += question.weight
+                else:
+                    earned_points += response.partial_credit * question.weight
+        
+        return (earned_points / total_possible_points) * 100.0 if total_possible_points > 0 else 0.0
+
+    def _map_percentage_to_expertise_level(self, percentage: float) -> int:
+        """
+        Map percentage score to expertise level using adjusted scale.
+        
+        20-100% range (80% total) divided into 10 levels = 8% per level
+        Level N starts at: 20% + ((N-1) × 8%)
+        
+        Args:
+            percentage: Score percentage (0-100)
+            
+        Returns:
+            Expertise level (1-10)
+        """
+        if percentage < 28:      # 0-27%
+            return 1
+        elif percentage < 36:    # 28-35%
+            return 2
+        elif percentage < 44:    # 36-43%
+            return 3
+        elif percentage < 52:    # 44-51%
+            return 4
+        elif percentage < 60:    # 52-59%
+            return 5
+        elif percentage < 68:    # 60-67%
+            return 6
+        elif percentage < 76:    # 68-75%
+            return 7
+        elif percentage < 84:    # 76-83%
+            return 8
+        elif percentage < 92:    # 84-91%
+            return 9
+        else:                    # 92-100%
+            return 10
 
     def _get_question_generation_prompt(self) -> str:
         """Get the system prompt for question generation."""
@@ -368,29 +507,44 @@ Generate questions that effectively differentiate between novice and expert know
 EVALUATION MISSION:
 Analyze assessment performance to determine expertise level (1-10) and appropriate report complexity, providing clear explanations for your assessment.
 
-EXPERTISE LEVEL SCALE:
-- Level 1-2: Complete novice, needs comprehensive educational content
-- Level 3-4: Basic understanding, requires detailed explanations
-- Level 5-6: Intermediate knowledge, can handle moderate complexity
-- Level 7-8: Advanced knowledge, appreciates sophisticated analysis
-- Level 9-10: Expert level, prefers concise executive summaries
+EXPERTISE LEVEL SCALE (ADJUSTED FOR RANDOM GUESSING):
+- Level 1: 0-27% - Random guessing or below (needs maximum educational content)
+- Level 2: 28-35% - Slightly above random (basic awareness, comprehensive education needed)
+- Level 3: 36-43% - Basic knowledge (fundamental understanding, detailed explanations needed)
+- Level 4: 44-51% - Developing understanding (good basics, requires explanatory content)
+- Level 5: 52-59% - Intermediate knowledge (solid foundation, moderate complexity acceptable)
+- Level 6: 60-67% - Good understanding (comfortable with complexity, balanced analysis)
+- Level 7: 68-75% - Advanced knowledge (sophisticated concepts, minimal education needed)
+- Level 8: 76-83% - Sophisticated analysis (expert-level concepts, advanced reports)
+- Level 9: 84-91% - Expert level (top-tier knowledge, executive summaries preferred)
+- Level 10: 92-100% - Top-tier analyst (comprehensive expertise, concise expert content)
 
 REPORT COMPLEXITY MAPPING:
-- Levels 1-6: "comprehensive" (200-300 page educational reports)
-- Levels 7-10: "executive" (10-20 page expert updates)
+- Levels 1-2: "foundational" (250-300 page comprehensive educational reports)
+- Levels 3-4: "educational" (150-200 page detailed explanatory reports)
+- Levels 5-6: "intermediate" (80-100 page balanced analysis with context)
+- Levels 7-8: "advanced" (50-60 page sophisticated analysis reports)
+- Levels 9-10: "executive" (10-20 page expert-level executive summaries)
+
+SCORING METHODOLOGY (CRITICAL):
+- Random guessing baseline: 25% expected accuracy on multiple choice
+- Effective scoring range: 20-100% (80% range) mapped across 10 expertise levels
+- Each level represents 8% increment: Level N = 20% + ((N-1) × 8%)
+- Score calculation: (Correct answers × weights) / Total possible points × 100%
 
 HOLISTIC EVALUATION FACTORS:
-1. Overall score percentage and category distribution
-2. Performance on higher difficulty questions (levels 7-10)
-3. Consistency across different knowledge areas
-4. Time taken per question (faster may indicate confidence)
-5. Pattern of correct/incorrect responses
+1. Adjusted score percentage accounting for random guessing baseline
+2. Performance on higher difficulty questions (levels 7-10) weighted more heavily
+3. Consistency across different knowledge areas (pattern analysis)
+4. Time taken per question (confidence and knowledge depth indicators)
+5. Category-specific performance distribution
 
 EVALUATION PRINCIPLES:
-- Be fair but discriminating in your assessment
-- Consider that guessing can lead to some correct answers
-- Weight performance on difficult questions more heavily
-- Look for knowledge patterns that indicate true expertise
-- Provide clear, actionable explanations for the assigned level
+- Account for 25% random guessing baseline in all assessments
+- Use compressed 20-100% scale for true knowledge differentiation
+- Weight advanced questions (levels 8-10) significantly higher
+- Look for knowledge patterns that distinguish real understanding from guessing
+- Be precise with level assignments using the 8% increment scale
+- Provide clear explanations referencing the adjusted scoring methodology
 
 Your evaluation should be thorough, fair, and provide valuable insights into the user's investment knowledge level."""

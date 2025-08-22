@@ -30,8 +30,8 @@ class UserSession(BaseModel):
     assessment_result: AssessmentResult | None = Field(
         None, description="Complete assessment results and analysis"
     )
-    report_complexity: Literal["comprehensive", "executive"] | None = Field(
-        None, description="Chosen report complexity level"
+    report_complexity: Literal["foundational", "educational", "intermediate", "advanced", "executive"] | None = Field(
+        None, description="Chosen report complexity level based on expertise"
     )
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(UTC), description="Session creation timestamp"
@@ -81,8 +81,8 @@ class AssessmentResult(BaseModel):
     expertise_level: int = Field(..., ge=1, le=10, description="AI-evaluated expertise level")
     report_complexity: str = Field(
         ...,
-        pattern="^(comprehensive|executive)$",
-        description="Report complexity based on expertise",
+        pattern="^(foundational|educational|intermediate|advanced|executive)$",
+        description="Report complexity based on expertise level mapping",
     )
     explanation: str = Field(..., description="AI-generated explanation of expertise assessment")
     ticker_context: str = Field(..., description="Ticker this assessment was conducted for")

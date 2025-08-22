@@ -103,6 +103,59 @@ class TestAssessmentAgent:
         ]
         assert assessment_agent.categories == expected_categories
 
+    def test_report_complexity_mapping(self, assessment_agent):
+        """Test expertise level to report complexity mapping."""
+        # Test level mapping
+        assert assessment_agent._determine_report_complexity(1) == "foundational"
+        assert assessment_agent._determine_report_complexity(2) == "foundational"
+        assert assessment_agent._determine_report_complexity(3) == "educational"
+        assert assessment_agent._determine_report_complexity(4) == "educational"
+        assert assessment_agent._determine_report_complexity(5) == "intermediate"
+        assert assessment_agent._determine_report_complexity(6) == "intermediate"
+        assert assessment_agent._determine_report_complexity(7) == "advanced"
+        assert assessment_agent._determine_report_complexity(8) == "advanced"
+        assert assessment_agent._determine_report_complexity(9) == "executive"
+        assert assessment_agent._determine_report_complexity(10) == "executive"
+
+    def test_report_complexity_info(self, assessment_agent):
+        """Test report complexity information retrieval."""
+        # Test all complexity types
+        foundational_info = assessment_agent.get_report_complexity_info("foundational")
+        assert foundational_info["page_range"] == "250-300"
+        assert "Complete novices" in foundational_info["target_audience"]
+        
+        executive_info = assessment_agent.get_report_complexity_info("executive")
+        assert executive_info["page_range"] == "10-20"
+        assert "Expert-level" in executive_info["target_audience"]
+        
+        # Test invalid complexity
+        invalid_info = assessment_agent.get_report_complexity_info("invalid")
+        assert invalid_info == {}
+
+    def test_percentage_to_expertise_mapping(self, assessment_agent):
+        """Test percentage score to expertise level mapping."""
+        # Test the adjusted scale accounting for random guessing
+        assert assessment_agent._map_percentage_to_expertise_level(20) == 1  # Below random
+        assert assessment_agent._map_percentage_to_expertise_level(25) == 1  # Random guessing
+        assert assessment_agent._map_percentage_to_expertise_level(30) == 2  # Slightly above random
+        assert assessment_agent._map_percentage_to_expertise_level(40) == 3  # Basic knowledge
+        assert assessment_agent._map_percentage_to_expertise_level(50) == 4  # Developing
+        assert assessment_agent._map_percentage_to_expertise_level(55) == 5  # Intermediate
+        assert assessment_agent._map_percentage_to_expertise_level(65) == 6  # Good
+        assert assessment_agent._map_percentage_to_expertise_level(75) == 7  # Advanced
+        assert assessment_agent._map_percentage_to_expertise_level(80) == 8  # Sophisticated
+        assert assessment_agent._map_percentage_to_expertise_level(90) == 9  # Expert
+        assert assessment_agent._map_percentage_to_expertise_level(95) == 10  # Top-tier
+
+    def test_score_percentage_calculation(self, assessment_agent, sample_questions, sample_responses):
+        """Test percentage score calculation with weighted questions."""
+        percentage = assessment_agent._calculate_score_percentage(sample_questions, sample_responses)
+        
+        # Should be calculated as: (earned_points / total_possible_points) * 100
+        # With sample data, this should be a valid percentage
+        assert 0 <= percentage <= 100
+        assert isinstance(percentage, float)
+
     @patch("src.agents.assessment_agent.OpenAIClient")
     def test_generate_contextual_assessment_questions_success(self, mock_client_class):
         """Test successful question generation."""
@@ -171,7 +224,6 @@ class TestAssessmentAgent:
 
         mock_evaluation = {
             "expertise_level": 7,
-            "report_complexity": "executive",
             "explanation": "User demonstrates advanced knowledge with strong performance on difficult questions.",
             "confidence_score": 0.85,
         }
@@ -183,7 +235,7 @@ class TestAssessmentAgent:
         # Verify results
         assert isinstance(result, AssessmentResult)
         assert result.expertise_level == 7
-        assert result.report_complexity == "executive"
+        assert result.report_complexity == "advanced"  # Level 7 maps to advanced (50-60 pages)
         assert result.ticker_context == "AAPL"
         assert "score_breakdown" in result.model_dump()
 
@@ -268,14 +320,21 @@ class TestAssessmentAgent:
             "analytical_sophistication": 2.0,
         }
 
+        # Calculate percentage and suggested level for the new signature
+        percentage_score = assessment_agent._calculate_score_percentage(sample_questions, sample_responses)
+        suggested_level = assessment_agent._map_percentage_to_expertise_level(percentage_score)
+
         context = assessment_agent._create_evaluation_context(
-            sample_questions, sample_responses, score_breakdown, "AAPL"
+            sample_questions, sample_responses, score_breakdown, "AAPL", percentage_score, suggested_level
         )
 
         # Verify context contains expected elements
         assert "ASSESSMENT EVALUATION FOR TICKER: AAPL" in context
         assert "Total Questions: 3" in context
         assert "Total Responses: 3" in context
+        assert "Overall Score:" in context
+        assert "Baseline-Adjusted Suggested Level:" in context
+        assert "ADJUSTED SCORING SCALE" in context
         assert "general_investing: 1.00 points" in context
         assert "ticker_specific: 0.00 points" in context
         assert "Q1 (Level 1, general_investing): ✓" in context
