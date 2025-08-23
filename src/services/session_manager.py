@@ -161,17 +161,17 @@ class SessionManager:
     def get_session_as_model(self, session_id: str) -> UserSession | None:
         """
         Get session as a UserSession model object.
-        
+
         Args:
             session_id: Unique session identifier
-            
+
         Returns:
             UserSession object if found, None otherwise
         """
         session_dict = self.get_session(session_id)
         if not session_dict:
             return None
-        
+
         try:
             # Convert dictionary to UserSession model
             return UserSession(**session_dict)
@@ -182,10 +182,10 @@ class SessionManager:
     def update_session_model(self, session: UserSession) -> UserSession | None:
         """
         Update session using a UserSession model.
-        
+
         Args:
             session: UserSession model object
-            
+
         Returns:
             Updated UserSession if successful, None otherwise
         """

@@ -12,14 +12,14 @@ logger = logging.getLogger(__name__)
 class AgentCoordinator:
     """Manages sequential execution of research agents with context handoffs."""
 
-    def __init__(self):
+    def __init__(self, enable_retries: bool = True):
         """Initialize the agent coordinator."""
         # Define the sequential agent execution order
         self.agent_order = [
             "valuation_agent",
             "strategic_agent",
             "historian_agent",
-            "synthesis_agent"
+            "synthesis_agent",
         ]
 
         # Track active research sessions
@@ -28,17 +28,23 @@ class AgentCoordinator:
         # Store agent handoffs for each session
         self.session_handoffs: dict[str, list[AgentHandoff]] = {}
 
+        # Track retry counts for each agent per session
+        self.agent_retry_counts: dict[str, dict[str, int]] = {}
+
+        # Maximum retries per agent
+        self.max_retries = 3 if enable_retries else 0
+
     async def start_research_process(
         self, session_id: str, ticker: str, expertise_level: int
     ) -> str:
         """
         Start the collaborative research process for a session.
-        
+
         Args:
             session_id: Unique session identifier
             ticker: Stock ticker symbol
             expertise_level: User expertise level (1-10)
-            
+
         Returns:
             Research process ID (same as session_id for now)
         """
@@ -49,11 +55,12 @@ class AgentCoordinator:
             session_id=session_id,
             ticker=ticker,
             status="active",
-            current_agent=self.agent_order[0] if self.agent_order else None
+            current_agent=self.agent_order[0] if self.agent_order else None,
         )
 
         self.active_sessions[session_id] = research_status
         self.session_handoffs[session_id] = []
+        self.agent_retry_counts[session_id] = {}
 
         # Start the research process (non-blocking)
         asyncio.create_task(self._execute_research_workflow(session_id, ticker, expertise_level))
@@ -63,10 +70,10 @@ class AgentCoordinator:
     async def get_research_status(self, session_id: str) -> dict[str, Any]:
         """
         Get current research status for a session.
-        
+
         Args:
             session_id: Session identifier
-            
+
         Returns:
             Dictionary containing research status information
         """
@@ -84,18 +91,20 @@ class AgentCoordinator:
             "status": status.status,
             "error_message": status.error_message,
             "started_at": status.started_at.isoformat(),
-            "completed_at": status.completed_at.isoformat() if status.completed_at else None
+            "completed_at": status.completed_at.isoformat() if status.completed_at else None,
         }
 
-    async def handle_agent_failure(self, session_id: str, agent_name: str, error: Exception) -> bool:
+    async def handle_agent_failure(
+        self, session_id: str, agent_name: str, error: Exception
+    ) -> bool:
         """
-        Handle failure of an individual agent with graceful degradation.
-        
+        Handle failure of an individual agent with retry logic and graceful degradation.
+
         Args:
             session_id: Session identifier
             agent_name: Name of the failed agent
             error: Exception that caused the failure
-            
+
         Returns:
             True if recovery successful, False if critical failure
         """
@@ -105,16 +114,69 @@ class AgentCoordinator:
             return False
 
         status = self.active_sessions[session_id]
-        status.agents_failed.append(agent_name)
 
-        # Check if this is a critical agent (for now, all agents are considered recoverable)
-        critical_agents = {"valuation_agent"}  # Valuation is most critical
+        # Initialize retry count for this agent if not exists
+        if session_id not in self.agent_retry_counts:
+            self.agent_retry_counts[session_id] = {}
+        if agent_name not in self.agent_retry_counts[session_id]:
+            self.agent_retry_counts[session_id][agent_name] = 0
+
+        # Get current retry count
+        retry_count = self.agent_retry_counts[session_id][agent_name]
+
+        # Check if we should retry
+        if retry_count < self.max_retries:
+            # Increment retry count
+            self.agent_retry_counts[session_id][agent_name] += 1
+            retry_count += 1
+
+            # Calculate exponential backoff delay (1s, 2s, 4s)
+            delay = 2 ** (retry_count - 1)
+
+            logger.info(
+                f"Retrying agent {agent_name} for session {session_id} "
+                f"(attempt {retry_count}/{self.max_retries}) after {delay}s delay"
+            )
+
+            # Schedule retry with exponential backoff
+            await asyncio.sleep(delay)
+
+            # Attempt to retry the agent
+            retry_success = await self._retry_agent(session_id, agent_name)
+
+            if retry_success:
+                logger.info(f"Agent {agent_name} succeeded on retry {retry_count}")
+                # Remove from failed list if it was added
+                if agent_name in status.agents_failed:
+                    status.agents_failed.remove(agent_name)
+                return True
+            else:
+                # If retry also failed, continue to check if we have more retries
+                if retry_count < self.max_retries:
+                    # Will retry again
+                    return await self.handle_agent_failure(session_id, agent_name, error)
+
+        # No more retries - mark as failed
+        if agent_name not in status.agents_failed:
+            status.agents_failed.append(agent_name)
+
+        # Check if this is a critical agent (all agents are critical per PO requirement)
+        critical_agents = {
+            "valuation_agent",
+            "strategic_agent",
+            "historian_agent",
+            "synthesis_agent",
+        }
 
         if agent_name in critical_agents:
             # Critical failure - abort the process
             status.status = "failed"
-            status.error_message = f"Critical agent {agent_name} failed: {str(error)}"
-            logger.error(f"Critical agent failure - aborting research for session {session_id}")
+            status.error_message = (
+                f"Critical agent {agent_name} failed after {self.max_retries} retries: {str(error)}"
+            )
+            logger.error(
+                f"Critical agent failure after all retries - aborting research for session {session_id}"
+            )
             return False
 
         # Non-critical failure - continue with remaining agents
@@ -126,13 +188,13 @@ class AgentCoordinator:
     ) -> bool:
         """
         Coordinate handoff between agents with data validation.
-        
+
         Args:
             session_id: Session identifier
             source_agent: Agent providing the data
             target_agent: Agent receiving the data
             data: Handoff data dictionary
-            
+
         Returns:
             True if handoff successful, False otherwise
         """
@@ -145,7 +207,7 @@ class AgentCoordinator:
                 context_summary=data.get("context_summary", ""),
                 cross_references=data.get("cross_references", []),
                 confidence_metrics=data.get("confidence_metrics", {}),
-                token_usage=data.get("token_usage", 0)
+                token_usage=data.get("token_usage", 0),
             )
 
             # Validate handoff integrity
@@ -187,7 +249,7 @@ class AgentCoordinator:
     ) -> None:
         """
         Execute the complete research workflow with sequential agents.
-        
+
         Args:
             session_id: Session identifier
             ticker: Stock ticker symbol
@@ -218,15 +280,19 @@ class AgentCoordinator:
 
                     # Create mock handoff data
                     handoff_data = {
-                        "research_files": [f"research_database/sessions/{session_id}/{ticker}/{agent_name.split('_')[0]}/analysis_v1.md"],
+                        "research_files": [
+                            f"research_database/sessions/{session_id}/{ticker}/{agent_name.split('_')[0]}/analysis_v1.md"
+                        ],
                         "context_summary": f"Completed comprehensive {agent_name} analysis for {ticker}. Key findings include detailed financial metrics, market positioning assessment, competitive analysis, and strategic recommendations. Analysis provides thorough foundation for {next_agent} to build upon with additional insights and specialized expertise.",
                         "cross_references": [],
                         "confidence_metrics": {"confidence": 0.8, "completeness": 0.9},
-                        "token_usage": 1500
+                        "token_usage": 1500,
                     }
 
                     # Execute handoff
-                    await self.coordinate_agent_handoff(session_id, agent_name, next_agent, handoff_data)
+                    await self.coordinate_agent_handoff(
+                        session_id, agent_name, next_agent, handoff_data
+                    )
 
             # Mark research as completed
             if session_id in self.active_sessions:
@@ -235,6 +301,7 @@ class AgentCoordinator:
                 status.current_agent = None
                 status.progress_percentage = 100.0
                 from datetime import UTC, datetime
+
                 status.completed_at = datetime.now(UTC)
 
                 logger.info(f"Research workflow completed for session {session_id}")
@@ -251,7 +318,7 @@ class AgentCoordinator:
     ) -> AgentResult:
         """
         Mock agent execution for testing the coordination framework.
-        
+
         This will be replaced with actual agent implementations.
         """
         # Simulate some processing time
@@ -261,11 +328,13 @@ class AgentCoordinator:
         result = AgentResult(
             agent_name=agent_name,
             success=True,
-            research_files_created=[f"research_database/sessions/{session_id}/{ticker}/{agent_name.split('_')[0]}/analysis_v1.md"],
+            research_files_created=[
+                f"research_database/sessions/{session_id}/{ticker}/{agent_name.split('_')[0]}/analysis_v1.md"
+            ],
             summary=f"Completed {agent_name} analysis for {ticker}",
             token_usage=1500,
             execution_time_seconds=1.0,
-            confidence_score=0.85
+            confidence_score=0.85,
         )
 
         logger.info(f"Mock {agent_name} execution completed for {ticker}")
@@ -274,10 +343,10 @@ class AgentCoordinator:
     def get_session_handoffs(self, session_id: str) -> list[dict[str, Any]]:
         """
         Get all handoffs for a session.
-        
+
         Args:
             session_id: Session identifier
-            
+
         Returns:
             List of handoff dictionaries
         """
@@ -286,10 +355,47 @@ class AgentCoordinator:
 
         return [handoff.model_dump() for handoff in self.session_handoffs[session_id]]
 
+    async def _retry_agent(self, session_id: str, agent_name: str) -> bool:
+        """
+        Retry a failed agent execution.
+
+        Args:
+            session_id: Session identifier
+            agent_name: Name of the agent to retry
+
+        Returns:
+            True if retry successful, False otherwise
+        """
+        try:
+            logger.info(f"Retrying agent {agent_name} for session {session_id}")
+
+            if session_id not in self.active_sessions:
+                return False
+
+            status = self.active_sessions[session_id]
+            ticker = status.ticker
+
+            # Get expertise level from first handoff or default to 5
+            expertise_level = 5
+            if session_id in self.session_handoffs and self.session_handoffs[session_id]:
+                # Extract from context if available
+                expertise_level = 5  # Default for now
+
+            # Re-execute the agent (using mock for now)
+            result = await self._mock_agent_execution(
+                session_id, agent_name, ticker, expertise_level
+            )
+
+            return result.success
+
+        except Exception as e:
+            logger.error(f"Error during agent retry: {str(e)}")
+            return False
+
     def cleanup_session(self, session_id: str) -> None:
         """
         Clean up session data after research completion.
-        
+
         Args:
             session_id: Session identifier
         """
@@ -298,6 +404,9 @@ class AgentCoordinator:
 
         if session_id in self.session_handoffs:
             del self.session_handoffs[session_id]
+
+        if session_id in self.agent_retry_counts:
+            del self.agent_retry_counts[session_id]
 
         logger.info(f"Cleaned up session data for {session_id}")
 

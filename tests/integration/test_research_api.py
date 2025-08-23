@@ -21,7 +21,7 @@ class TestResearchAPI:
         """Create temporary research database."""
         temp_dir = tempfile.mkdtemp()
         db = ResearchDatabase(base_path=temp_dir)
-        with patch('src.services.research_database.get_research_database', return_value=db):
+        with patch('src.routers.research.get_research_database', return_value=db):
             yield db
         shutil.rmtree(temp_dir)
 
@@ -52,7 +52,7 @@ class TestResearchAPI:
         # Add to session manager
         session_manager = get_session_manager()
         session_manager.create_session("AAPL")
-        session_manager.sessions["test-session-123"] = session
+        session_manager._sessions["test-session-123"] = session.model_dump()
         
         return session
 
@@ -89,7 +89,7 @@ class TestResearchAPI:
         )
         
         session_manager = get_session_manager()
-        session_manager.sessions["incomplete-session"] = session
+        session_manager._sessions["incomplete-session"] = session.model_dump()
         
         response = client.post(
             "/api/research/start",
@@ -219,7 +219,7 @@ class TestResearchAPI:
         # Verify initial status
         session_manager = get_session_manager()
         session = session_manager.get_session("test-session-123")
-        initial_status = session.status
+        initial_status = session.get("status") if session else "unknown"
         
         # Start research
         response = client.post(
@@ -230,7 +230,7 @@ class TestResearchAPI:
         
         # Check session status was updated
         updated_session = session_manager.get_session("test-session-123")
-        assert updated_session.status == "research"
+        assert updated_session.get("status") == "research"
 
     def test_research_api_error_handling(self, client):
         """Test error handling in research API endpoints."""
@@ -255,19 +255,19 @@ class TestResearchAPI:
             session_id = f"test-session-{i}"
             session = UserSession(
                 session_id=session_id,
-                ticker_symbol=f"TEST{i}",
+                ticker_symbol=f"TEST",
                 user_expertise_level=5,
                 assessment_result=AssessmentResult(
                     session_id=session_id,
                     expertise_level=5,
                     report_complexity="intermediate",
                     explanation="Test session",
-                    ticker_context=f"TEST{i}"
+                    ticker_context="TEST"
                 ),
                 report_complexity="intermediate",
-                research_database_path=f"research_database/sessions/{session_id}/TEST{i}"
+                research_database_path=f"research_database/sessions/{session_id}/TEST"
             )
-            session_manager.sessions[session_id] = session
+            session_manager._sessions[session_id] = session.model_dump()
             sessions.append(session_id)
         
         # Start research for all sessions

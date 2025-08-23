@@ -16,7 +16,7 @@ class ResearchDatabase:
     def __init__(self, base_path: str = "research_database"):
         """
         Initialize research database manager.
-        
+
         Args:
             base_path: Base directory for research storage
         """
@@ -30,11 +30,11 @@ class ResearchDatabase:
     def create_session_directory(self, session_id: str, ticker: str) -> Path:
         """
         Create directory structure for a research session.
-        
+
         Args:
             session_id: Unique session identifier
             ticker: Stock ticker symbol
-            
+
         Returns:
             Path to session directory
         """
@@ -63,16 +63,12 @@ class ResearchDatabase:
             "session_id": session_id,
             "ticker": ticker,
             "created_at": datetime.now(UTC).isoformat(),
-            "files": {}
+            "files": {},
         }
         self._write_yaml_file(meta_dir / "file_index.yaml", file_index)
 
         # Initialize cross references
-        cross_references = {
-            "session_id": session_id,
-            "ticker": ticker,
-            "references": []
-        }
+        cross_references = {"session_id": session_id, "ticker": ticker, "references": []}
         self._write_yaml_file(meta_dir / "cross_references.yaml", cross_references)
 
         # Initialize agent activity
@@ -83,8 +79,8 @@ class ResearchDatabase:
                 "valuation_agent": {"status": "pending", "files": []},
                 "strategic_agent": {"status": "pending", "files": []},
                 "historian_agent": {"status": "pending", "files": []},
-                "synthesis_agent": {"status": "pending", "files": []}
-            }
+                "synthesis_agent": {"status": "pending", "files": []},
+            },
         }
         self._write_yaml_file(meta_dir / "agent_activity.yaml", agent_activity)
 
@@ -95,11 +91,11 @@ class ResearchDatabase:
         agent_type: str,
         filename: str,
         content: str,
-        metadata: dict[str, Any] | None = None
+        metadata: dict[str, Any] | None = None,
     ) -> Path:
         """
         Write a research file with YAML metadata header.
-        
+
         Args:
             session_id: Session identifier
             ticker: Stock ticker
@@ -107,7 +103,7 @@ class ResearchDatabase:
             filename: Name of the file
             content: Research content
             metadata: Additional metadata
-            
+
         Returns:
             Path to written file
         """
@@ -121,13 +117,15 @@ class ResearchDatabase:
         if metadata is None:
             metadata = {}
 
-        metadata.update({
-            "session_id": session_id,
-            "ticker": ticker,
-            "agent_type": agent_type,
-            "created_at": datetime.now(UTC).isoformat(),
-            "version": 1
-        })
+        metadata.update(
+            {
+                "session_id": session_id,
+                "ticker": ticker,
+                "agent_type": agent_type,
+                "created_at": datetime.now(UTC).isoformat(),
+                "version": 1,
+            }
+        )
 
         # Create file with YAML header
         file_path = agent_dir / filename
@@ -148,15 +146,17 @@ class ResearchDatabase:
         logger.info(f"Wrote research file: {file_path}")
         return file_path
 
-    def read_research_file(self, session_id: str, ticker: str, relative_path: str) -> dict[str, Any]:
+    def read_research_file(
+        self, session_id: str, ticker: str, relative_path: str
+    ) -> dict[str, Any]:
         """
         Read a research file and parse metadata.
-        
+
         Args:
             session_id: Session identifier
             ticker: Stock ticker
             relative_path: Relative path to file from session directory
-            
+
         Returns:
             Dictionary with 'metadata' and 'content' keys
         """
@@ -181,19 +181,16 @@ class ResearchDatabase:
             metadata = {}
             main_content = content
 
-        return {
-            "metadata": metadata,
-            "content": main_content.strip()
-        }
+        return {"metadata": metadata, "content": main_content.strip()}
 
     def get_session_files(self, session_id: str, ticker: str) -> list[dict[str, Any]]:
         """
         Get all research files for a session.
-        
+
         Args:
             session_id: Session identifier
             ticker: Stock ticker
-            
+
         Returns:
             List of file information dictionaries
         """
@@ -205,12 +202,14 @@ class ResearchDatabase:
         for relative_path, file_info in file_index.get("files", {}).items():
             try:
                 file_data = self.read_research_file(session_id, ticker, relative_path)
-                files.append({
-                    "path": relative_path,
-                    "metadata": file_data["metadata"],
-                    "size": len(file_data["content"]),
-                    "created_at": file_info.get("created_at")
-                })
+                files.append(
+                    {
+                        "path": relative_path,
+                        "metadata": file_data["metadata"],
+                        "size": len(file_data["content"]),
+                        "created_at": file_info.get("created_at"),
+                    }
+                )
             except Exception as e:
                 logger.warning(f"Error reading file {relative_path}: {str(e)}")
 
@@ -219,12 +218,12 @@ class ResearchDatabase:
     def get_agent_context(self, session_id: str, ticker: str, agent_type: str) -> dict[str, Any]:
         """
         Get all available context for an agent from previous research.
-        
+
         Args:
             session_id: Session identifier
             ticker: Stock ticker
             agent_type: Type of requesting agent
-            
+
         Returns:
             Dictionary with context from previous agents
         """
@@ -232,7 +231,7 @@ class ResearchDatabase:
             "session_id": session_id,
             "ticker": ticker,
             "requesting_agent": agent_type,
-            "previous_research": {}
+            "previous_research": {},
         }
 
         # Define agent dependencies (what each agent can read)
@@ -240,7 +239,7 @@ class ResearchDatabase:
             "valuation": [],  # First agent, no dependencies
             "strategic": ["valuation"],  # Reads valuation
             "historical": ["valuation", "strategic"],  # Reads both
-            "synthesis": ["valuation", "strategic", "historical"]  # Reads all
+            "synthesis": ["valuation", "strategic", "historical"],  # Reads all
         }
 
         available_agents = agent_dependencies.get(agent_type, [])
@@ -252,7 +251,9 @@ class ResearchDatabase:
                 for file_path in agent_dir.glob("*.md"):
                     try:
                         file_data = self.read_research_file(
-                            session_id, ticker, file_path.relative_to(self.sessions_path / session_id / ticker)
+                            session_id,
+                            ticker,
+                            file_path.relative_to(self.sessions_path / session_id / ticker),
                         )
                         agent_files.append(file_data)
                     except Exception as e:
@@ -267,7 +268,7 @@ class ResearchDatabase:
     ) -> None:
         """
         Add a cross-reference between research files.
-        
+
         Args:
             session_id: Session identifier
             ticker: Stock ticker
@@ -277,12 +278,14 @@ class ResearchDatabase:
         """
         cross_refs = self._read_cross_references(session_id, ticker)
         if cross_refs:
-            cross_refs["references"].append({
-                "source": source_file,
-                "target": target_file,
-                "relationship": relationship,
-                "created_at": datetime.now(UTC).isoformat()
-            })
+            cross_refs["references"].append(
+                {
+                    "source": source_file,
+                    "target": target_file,
+                    "relationship": relationship,
+                    "created_at": datetime.now(UTC).isoformat(),
+                }
+            )
 
             meta_dir = self.sessions_path / session_id / ticker / "meta"
             self._write_yaml_file(meta_dir / "cross_references.yaml", cross_refs)
@@ -293,20 +296,21 @@ class ResearchDatabase:
         if file_index:
             file_index["files"][relative_path] = {
                 "created_at": datetime.now(UTC).isoformat(),
-                "updated_at": datetime.now(UTC).isoformat()
+                "updated_at": datetime.now(UTC).isoformat(),
             }
 
             meta_dir = self.sessions_path / session_id / ticker / "meta"
             self._write_yaml_file(meta_dir / "file_index.yaml", file_index)
 
-    def _update_agent_activity(self, session_id: str, ticker: str, agent_name: str, filename: str) -> None:
+    def _update_agent_activity(
+        self, session_id: str, ticker: str, agent_name: str, filename: str
+    ) -> None:
         """Update agent activity tracking."""
         activity = self._read_agent_activity(session_id, ticker)
         if activity and agent_name in activity["agents"]:
-            activity["agents"][agent_name]["files"].append({
-                "filename": filename,
-                "created_at": datetime.now(UTC).isoformat()
-            })
+            activity["agents"][agent_name]["files"].append(
+                {"filename": filename, "created_at": datetime.now(UTC).isoformat()}
+            )
             activity["agents"][agent_name]["status"] = "active"
 
             meta_dir = self.sessions_path / session_id / ticker / "meta"

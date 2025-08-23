@@ -381,7 +381,7 @@ Please generate the questions now.""",
                 "target_audience": "Complete novices needing extensive education",
             },
             "educational": {
-                "page_range": "150-200", 
+                "page_range": "150-200",
                 "description": "Detailed explanatory reports with examples and context",
                 "target_audience": "Basic understanding users requiring detailed explanations",
             },
@@ -403,22 +403,24 @@ Please generate the questions now.""",
         }
         return complexity_mapping.get(complexity, {})
 
-    def _calculate_score_percentage(self, questions: list[AssessmentQuestion], responses: list[AssessmentResponse]) -> float:
+    def _calculate_score_percentage(
+        self, questions: list[AssessmentQuestion], responses: list[AssessmentResponse]
+    ) -> float:
         """
         Calculate the percentage score from weighted responses.
-        
+
         Args:
             questions: List of assessment questions
             responses: List of user responses
-            
+
         Returns:
             Percentage score (0-100)
         """
         total_possible_points = sum(q.weight for q in questions)
         earned_points = 0.0
-        
+
         response_dict = {r.question_id: r for r in responses}
-        
+
         for question in questions:
             response = response_dict.get(question.id)
             if response:
@@ -426,41 +428,41 @@ Please generate the questions now.""",
                     earned_points += question.weight
                 else:
                     earned_points += response.partial_credit * question.weight
-        
+
         return (earned_points / total_possible_points) * 100.0 if total_possible_points > 0 else 0.0
 
     def _map_percentage_to_expertise_level(self, percentage: float) -> int:
         """
         Map percentage score to expertise level using adjusted scale.
-        
+
         20-100% range (80% total) divided into 10 levels = 8% per level
         Level N starts at: 20% + ((N-1) × 8%)
-        
+
         Args:
             percentage: Score percentage (0-100)
-            
+
         Returns:
             Expertise level (1-10)
         """
-        if percentage < 28:      # 0-27%
+        if percentage < 28:  # 0-27%
             return 1
-        elif percentage < 36:    # 28-35%
+        elif percentage < 36:  # 28-35%
             return 2
-        elif percentage < 44:    # 36-43%
+        elif percentage < 44:  # 36-43%
             return 3
-        elif percentage < 52:    # 44-51%
+        elif percentage < 52:  # 44-51%
             return 4
-        elif percentage < 60:    # 52-59%
+        elif percentage < 60:  # 52-59%
             return 5
-        elif percentage < 68:    # 60-67%
+        elif percentage < 68:  # 60-67%
             return 6
-        elif percentage < 76:    # 68-75%
+        elif percentage < 76:  # 68-75%
             return 7
-        elif percentage < 84:    # 76-83%
+        elif percentage < 84:  # 76-83%
             return 8
-        elif percentage < 92:    # 84-91%
+        elif percentage < 92:  # 84-91%
             return 9
-        else:                    # 92-100%
+        else:  # 92-100%
             return 10
 
     def _get_question_generation_prompt(self) -> str:

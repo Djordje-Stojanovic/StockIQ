@@ -14,7 +14,7 @@ class TestAgentCoordinator:
     @pytest.fixture
     def coordinator(self):
         """Create an AgentCoordinator instance for testing."""
-        return AgentCoordinator()
+        return AgentCoordinator(enable_retries=False)  # Disable retries for predictable testing
 
     @pytest.mark.asyncio
     async def test_start_research_process(self, coordinator):
@@ -83,22 +83,23 @@ class TestAgentCoordinator:
         assert "Critical agent valuation_agent failed" in status.error_message
 
     @pytest.mark.asyncio
-    async def test_handle_agent_failure_non_critical_agent(self, coordinator):
-        """Test handling failure of non-critical agent."""
+    async def test_handle_agent_failure_all_agents_critical(self, coordinator):
+        """Test handling failure when all agents are critical (PO requirement)."""
         session_id = "test-session-123"
         ticker = "AAPL"
         
         # Start research process
         await coordinator.start_research_process(session_id, ticker, 5)
         
-        # Simulate non-critical agent failure
+        # Simulate strategic agent failure (now also critical)
         error = Exception("Test error")
         success = await coordinator.handle_agent_failure(session_id, "strategic_agent", error)
         
-        assert success  # Non-critical failure should return True
+        assert not success  # All agents are now critical, so should return False
         status = coordinator.active_sessions[session_id]
-        assert status.status == "active"  # Should still be active
+        assert status.status == "failed"  # Should be failed
         assert "strategic_agent" in status.agents_failed
+        assert "Critical agent strategic_agent failed" in status.error_message
 
     @pytest.mark.asyncio
     async def test_coordinate_agent_handoff_valid_data(self, coordinator):

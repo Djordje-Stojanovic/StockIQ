@@ -14,9 +14,7 @@ class AgentHandoff(BaseModel):
     source_agent: str = Field(..., description="Agent providing the data")
     target_agent: str = Field(..., description="Agent receiving the data")
     research_files: list[str] = Field(..., description="List of research file paths")
-    context_summary: str = Field(
-        ..., max_length=5000, description="Condensed context for handoff"
-    )
+    context_summary: str = Field(..., max_length=5000, description="Condensed context for handoff")
     cross_references: list[str] = Field(
         default_factory=list, description="References to related analyses"
     )
@@ -73,9 +71,7 @@ class AgentResult(BaseModel):
     summary: str = Field(..., description="Summary of work completed")
     error_message: str | None = Field(None, description="Error message if failed")
     token_usage: int = Field(default=0, description="Tokens consumed")
-    execution_time_seconds: float = Field(
-        default=0.0, description="Time taken to complete"
-    )
+    execution_time_seconds: float = Field(default=0.0, description="Time taken to complete")
     confidence_score: float = Field(
         default=0.0, ge=0.0, le=1.0, description="Agent confidence in results"
     )

@@ -30,9 +30,9 @@ class UserSession(BaseModel):
     assessment_result: AssessmentResult | None = Field(
         None, description="Complete assessment results and analysis"
     )
-    report_complexity: Literal["foundational", "educational", "intermediate", "advanced", "executive"] | None = Field(
-        None, description="Chosen report complexity level based on expertise"
-    )
+    report_complexity: (
+        Literal["foundational", "educational", "intermediate", "advanced", "executive"] | None
+    ) = Field(None, description="Chosen report complexity level based on expertise")
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(UTC), description="Session creation timestamp"
     )
