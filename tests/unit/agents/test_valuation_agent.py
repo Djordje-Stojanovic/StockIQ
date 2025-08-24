@@ -124,7 +124,7 @@ class TestNewValuationAgent:
             messages = call_args[1]['messages']
             assert any(ticker in str(msg) for msg in messages)
             assert call_args[1]['reasoning_effort'] == "low"
-            assert call_args[1]['max_output_tokens'] == 32000
+            assert call_args[1]['max_output_tokens'] == 64000
 
     @pytest.mark.asyncio
     async def test_run_valuation_phase(self, agent, mock_research_response):

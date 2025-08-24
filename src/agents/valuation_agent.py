@@ -118,7 +118,7 @@ No estimates or placeholders - only real data with sources.
                 ],
                 reasoning_effort="low",  # Low to save tokens for output
                 verbosity="high",  # High for lots of detail
-                max_output_tokens=32000  # 32k context for comprehensive data
+                max_output_tokens=64000  # 64k context for comprehensive data
             )
 
             logger.info(f"✅ Research phase completed: {len(temp_md)} characters with real data")
@@ -222,7 +222,7 @@ Be conservative with assumptions. Show all calculations step-by-step with the ac
                     {"role": "system", "content": "You are an elite valuation expert. Be conservative, show all math step-by-step, cite sources from research."},
                     {"role": "user", "content": valuation_prompt}
                 ],
-                max_tokens=12000,  # 12k tokens as requested
+                max_tokens=16000,  # 16k tokens as requested
                 use_complex_model=True  # Use GPT-5 for complex analysis
             )
 
