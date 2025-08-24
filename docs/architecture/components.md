@@ -30,17 +30,19 @@
 
 ## Valuation Expert Agent
 
-**Responsibility:** Conducts deep financial analysis through MCP and web research, creates DCF models and peer comparisons, contributes structured valuation research to shared database
+**Responsibility:** Conducts Owner-Returns FCF/Share analysis through GPT-5 web search integration, creates elite investor methodology models using Buffett/Ackman/Terry Smith approaches, generates IRR decomposition analysis, Price Ladder calculations, and conservative stress testing
 
 **Key Interfaces:**
-- conduct_deep_valuation_research(ticker: str) -> PrivateResearchContext
-- create_dcf_analysis(research_context: str) -> str (markdown)
-- analyze_peer_comparison(research_context: str) -> str (markdown)
-- write_valuation_summary(shared_db: ResearchDB) -> str (markdown)
+- conduct_owner_returns_research(ticker: str, expertise_level: int) -> dict[str, Any]
+- calculate_owner_returns_irr(fcf_data: dict) -> IRRComponents
+- generate_price_ladder_analysis(fcf_projections: dict) -> PriceLadderAnalysis  
+- perform_reverse_dcf_analysis(ticker: str, current_price: float) -> ReverseDCFAnalysis
+- run_conservative_stress_tests(base_projections: dict) -> ConservativeStressResults
+- write_valuation_summary(analysis_results: dict) -> str (markdown)
 
-**Dependencies:** MCP Server, OpenAI API, Shared Research Database, Financial data sources
+**Dependencies:** GPT-5 Web Search API, OpenAI SDK, Owner-Returns Engine, Shared Research Database
 
-**Technology Stack:** Direct OpenAI SDK calls, MCP integration, structured markdown output
+**Technology Stack:** GPT-5 Responses API with web_search_preview tool, Owner-Returns FCF/Share calculation engine, Pydantic V2 data models, structured markdown output
 
 ## Strategic Analyst Agent
 
@@ -52,7 +54,7 @@
 - evaluate_market_dynamics(research_context: str) -> str (markdown)
 - comment_on_valuation(valuation_files: List[str]) -> str (markdown comments)
 
-**Dependencies:** Valuation Expert outputs, MCP Server, OpenAI API, Market research sources
+**Dependencies:** Valuation Expert outputs, GPT-5 Web Search API, OpenAI SDK
 
 **Technology Stack:** OpenAI SDK with strategic analysis prompts, research database integration
 
@@ -137,7 +139,7 @@ graph TB
     I --> J[Pandoc Converter]
     J --> K[PDF Download]
     
-    L[MCP Server] --> E
+    L[GPT-5 Web Search] --> E
     L --> F
     L --> G
     

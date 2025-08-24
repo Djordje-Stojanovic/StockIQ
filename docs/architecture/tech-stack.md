@@ -2,7 +2,7 @@
 
 ## Overview
 
-StockIQ employs a collaborative multi-agent architecture with FastAPI as the orchestration backbone, featuring 5 specialized AI agents that contribute to a shared research database through structured markdown files. This tech stack is optimized for institutional-grade financial analysis with local Windows 11 development.
+StockIQ employs a collaborative multi-agent architecture with FastAPI as the orchestration backbone, featuring 5 specialized AI agents that contribute to a shared research database through structured markdown files. The system uses Owner-Returns FCF/Share methodology (elite investor approaches from Buffett, Ackman, Terry Smith) rather than traditional DCF methods. This tech stack is optimized for institutional-grade financial analysis with local Windows 11 development.
 
 ## Platform & Infrastructure
 
@@ -12,7 +12,7 @@ StockIQ employs a collaborative multi-agent architecture with FastAPI as the orc
 - OpenAI SDK for direct API calls
 - Pandoc for markdown-to-PDF conversion
 - Shared research database (file-based .md system)
-- MCP integration for real-time financial data
+- GPT-5 web search integration for real-time financial data
 - Git-like versioning for research contributions
 
 **Deployment Host and Regions:** Local development only - no cloud deployment required
@@ -32,7 +32,8 @@ StockIQ employs a collaborative multi-agent architecture with FastAPI as the orc
 | PDF Generation | Pandoc | 3.0+ | Markdown to PDF conversion | Superior formatting, mature ecosystem, designed for academic/professional documents |
 | LaTeX Engine | XeLaTeX | Latest | Professional PDF typography | Best-in-class document formatting for institutional reports |
 | Data Validation | Pydantic | 2.0+ | Request/response validation | Type safety and automatic validation for agent data structures |
-| HTTP Client | httpx | 0.25+ | MCP integration and external APIs | Async-first HTTP client that integrates well with FastAPI |
+| Valuation Engine | Owner-Returns FCF/Share | Custom | Elite investor methodology | IRR decomposition, Price Ladder analysis, conservative stress testing using Buffett/Ackman approaches |
+| HTTP Client | httpx | 0.25+ | External API calls and web requests | Async-first HTTP client that integrates well with FastAPI |
 | Environment Config | python-dotenv | 1.0+ | Environment variable management | Simple configuration for API keys and settings |
 | Code Formatting | ruff | 0.1+ | Code formatting and linting | Fast Python formatter following project CLAUDE.md standards |
 | Development Server | uvicorn | 0.24+ | ASGI server for FastAPI | High-performance server with auto-reload for development |
@@ -52,8 +53,7 @@ StockIQ employs a collaborative multi-agent architecture with FastAPI as the orc
 - Python 3.11+ with virtual environment (`venv_linux`)
 - Pandoc for PDF generation
 - XeLaTeX for professional typography
-- OpenAI API access
-- MCP server integration
+- OpenAI API access with GPT-5 web search capabilities
 
 **Key Configuration:**
 - Line length: 100 characters (enforced by ruff)

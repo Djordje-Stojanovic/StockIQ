@@ -123,11 +123,11 @@ class TestAssessmentAgent:
         foundational_info = assessment_agent.get_report_complexity_info("foundational")
         assert foundational_info["page_range"] == "250-300"
         assert "Complete novices" in foundational_info["target_audience"]
-        
+
         executive_info = assessment_agent.get_report_complexity_info("executive")
         assert executive_info["page_range"] == "10-20"
         assert "Expert-level" in executive_info["target_audience"]
-        
+
         # Test invalid complexity
         invalid_info = assessment_agent.get_report_complexity_info("invalid")
         assert invalid_info == {}
@@ -150,7 +150,7 @@ class TestAssessmentAgent:
     def test_score_percentage_calculation(self, assessment_agent, sample_questions, sample_responses):
         """Test percentage score calculation with weighted questions."""
         percentage = assessment_agent._calculate_score_percentage(sample_questions, sample_responses)
-        
+
         # Should be calculated as: (earned_points / total_possible_points) * 100
         # With sample data, this should be a valid percentage
         assert 0 <= percentage <= 100

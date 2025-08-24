@@ -13,7 +13,7 @@ research_database/
 │   └── session_metadata.yaml        # Session-specific research context
 ├── {ticker_symbol}/                 # Per-company research directory
 │   ├── valuation/
-│   │   ├── dcf_analysis_v1.md       # DCF model with assumptions
+│   │   ├── owner_returns_analysis_v1.md    # Owner-Returns FCF/Share methodology
 │   │   ├── peer_comparison_v1.md    # Industry peer benchmarking
 │   │   ├── financial_metrics_v1.md  # Key financial ratios and trends
 │   │   └── comments/
@@ -50,13 +50,13 @@ Each research file follows this structure:
 
 ```markdown
 ---
-title: "DCF Analysis for ASML Holding N.V."
+title: "Owner-Returns FCF/Share Analysis for ASML Holding N.V."
 author: "ValuationAgent"
 created_at: "2025-08-21T10:00:00Z"
 updated_at: "2025-08-21T10:30:00Z"
 version: 1
 topic: "valuation"
-subtopic: "dcf_model"
+subtopic: "owner_returns_model"
 ticker: "ASML"
 session_id: "sess_123456"
 cross_references:

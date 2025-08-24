@@ -3,8 +3,8 @@
 fastapi>=0.104.0
 uvicorn>=0.24.0
 
-# OpenAI SDK for AI agent functionality
-openai>=1.0.0
+# OpenAI SDK for AI agent functionality with GPT-5 support
+openai>=1.54.0
 
 # Data validation and settings management
 pydantic>=2.0.0
@@ -27,6 +27,9 @@ weasyprint>=60.0
 
 # Static file serving
 aiofiles>=23.0.0
+
+# Financial calculations
+numpy>=1.21.0
 
 # Development and testing dependencies
 pytest>=7.0.0

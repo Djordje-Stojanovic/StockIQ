@@ -14,7 +14,7 @@ StockIQ/
 │   │   ├── __init__.py
 │   │   ├── base_agent.py           # Base agent with research DB access
 │   │   ├── assessment_agent.py     # Expertise assessment
-│   │   ├── valuation_agent.py      # DCF and financial analysis
+│   │   ├── valuation_agent.py      # Owner-Returns FCF/Share analysis
 │   │   ├── strategic_agent.py      # Competitive and market analysis
 │   │   ├── historian_agent.py      # Company history and context
 │   │   └── synthesis_agent.py      # Adaptive report synthesis
@@ -23,13 +23,13 @@ StockIQ/
 │   │   ├── research_database.py    # Shared research database manager
 │   │   ├── agent_coordinator.py    # Multi-agent collaboration
 │   │   ├── chunked_generator.py    # Chunked report generation
-│   │   ├── pandoc_converter.py     # Markdown to PDF conversion
-│   │   └── mcp_client.py           # MCP integration
+│   │   └── pandoc_converter.py     # Markdown to PDF conversion
 │   ├── models/                     # Enhanced data models
 │   │   ├── __init__.py
 │   │   ├── research_database.py    # Research file and metadata models
 │   │   ├── assessment.py           # Assessment data structures
 │   │   ├── collaboration.py        # Inter-agent collaboration models
+│   │   ├── owner_returns.py        # Owner-Returns FCF/Share data models
 │   │   └── reports.py              # Adaptive report formats
 │   └── utils/                      # Enhanced utility functions
 │       ├── __init__.py
@@ -37,6 +37,7 @@ StockIQ/
 │       ├── context_manager.py      # Token counting and context management
 │       ├── markdown_processor.py   # Markdown parsing and merging
 │       ├── file_operations.py      # Research database operations
+│       ├── owner_returns_engine.py # Owner-Returns FCF/Share calculation engine
 │       └── validators.py           # Input validation
 ├── static/                         # Enhanced frontend assets
 │   ├── css/
@@ -62,7 +63,7 @@ StockIQ/
 │           │   └── synthesis/
 ├── config/                         # Enhanced configuration
 │   ├── agent_prompts/              # Specialized agent prompts
-│   │   ├── valuation_deep_research.txt
+│   │   ├── valuation_owner_returns.txt   # Owner-Returns FCF/Share methodology
 │   │   ├── strategic_collaboration.txt
 │   │   ├── historian_context_integration.txt
 │   │   ├── synthesis_adaptive_scaling.txt

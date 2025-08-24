@@ -28,7 +28,7 @@ The solution replicates capital-intensive research approaches using a 5-agent AI
 **FR1:** The system must accept ticker symbols (e.g., ASML, COST) as input through a FastAPI web interface
 **FR2:** The Assessment Agent must present exactly 20 questions to evaluate user expertise across financial/valuation/strategic/risk domains
 **FR3:** The system must calculate user expertise level on a 1-10 scale based on assessment responses
-**FR4:** The Valuation Expert agent must generate DCF models, financial ratio analysis, and quantitative valuation metrics
+**FR4:** The Valuation Expert agent must generate Owner-Returns FCF/Share analysis, Price Ladder (Buffett Floor/≥10%/≥15% IRR), reverse-DCF expectations analysis, and comprehensive financial metrics using elite investor methodologies
 **FR5:** The Strategic Analyst agent must analyze competitive positioning, market dynamics, and strategic risks/opportunities  
 **FR6:** The Company Historian agent must research and document complete company history from founding to present
 **FR7:** The Final Report Synthesizer must integrate all agent outputs into cohesive investment recommendations with buy/sell/hold ratings and price targets
@@ -47,7 +47,7 @@ The solution replicates capital-intensive research approaches using a 5-agent AI
 **NFR2:** API response times must support real-time assessment question delivery and agent orchestration
 **NFR3:** The system must operate entirely on local Windows 11 environment with no cloud dependencies
 **NFR4:** Memory-based session storage must maintain user context throughout multi-agent workflow
-**NFR5:** Agent prompts must achieve institutional-grade analysis quality that demonstrably exceeds Goldman Sachs research depth
+**NFR5:** Agent prompts must achieve elite investor-grade analysis quality using Owner-Returns FCF/Share methodologies that match Buffett, Ackman, Terry Smith practices rather than traditional investment bank DCF approaches
 **NFR6:** The system must integrate with MCP servers for real-time financial data access
 **NFR7:** PDF generation must support professional formatting with embedded charts and financial tables
 **NFR8:** The system must maintain API key security for OpenAI SDK integration

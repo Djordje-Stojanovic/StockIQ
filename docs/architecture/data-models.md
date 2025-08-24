@@ -91,11 +91,14 @@ research_database/
 │   ├── cross_references.yaml    # Links between analyses  
 │   └── agent_activity.yaml      # Track agent contributions
 ├── valuation/
-│   ├── dcf_analysis_v1.md       # DCF model and assumptions
-│   ├── peer_comparison_v1.md    # Industry peer analysis
-│   ├── valuation_summary_v1.md  # Key valuation insights
+│   ├── owner_returns_analysis_v1.md    # Owner-Returns FCF/Share analysis
+│   ├── price_ladder_analysis_v1.md     # Buffett Floor / ≥10% / ≥15% IRR thresholds
+│   ├── reverse_dcf_analysis_v1.md      # Market-implied expectations vs projections
+│   ├── stress_testing_results_v1.md    # Conservative scenario analysis
+│   ├── peer_comparison_v1.md           # Industry peer analysis
+│   ├── valuation_summary_v1.md         # Key valuation insights
 │   └── comments/
-│       ├── strategic_critique_on_dcf.md    # Other agents' comments
+│       ├── strategic_critique_on_owner_returns.md    # Other agents' comments
 │       └── historian_context_on_peers.md
 ├── strategic/
 │   ├── competitive_moat_v1.md
@@ -120,7 +123,7 @@ research_database/
 ### Research File Metadata Format
 ```yaml
 ---
-title: "DCF Analysis for ASML"
+title: "Owner-Returns FCF/Share Analysis for ASML"
 author: "ValuationAgent"
 created_at: "2025-08-21T10:00:00Z"
 version: 1

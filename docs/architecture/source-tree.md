@@ -26,7 +26,7 @@ StockIQ/
 │   │   ├── __init__.py
 │   │   ├── base_agent.py           # Base agent with research DB access
 │   │   ├── assessment_agent.py     # Expertise assessment
-│   │   ├── valuation_agent.py      # DCF and financial analysis
+│   │   ├── valuation_agent.py      # Owner-Returns FCF/Share analysis
 │   │   ├── strategic_agent.py      # Competitive and market analysis
 │   │   ├── historian_agent.py      # Company history and context
 │   │   └── synthesis_agent.py      # Adaptive report synthesis
@@ -161,7 +161,7 @@ StockIQ/
 Each research session creates a structured hierarchy:
 ```
 research_database/sessions/{session_id}/{ticker}/
-├── valuation/          # DCF analysis, peer comparison
+├── valuation/          # Owner-Returns FCF/Share analysis, peer comparison
 ├── strategic/          # Competitive analysis, market dynamics
 ├── historical/         # Company timeline, leadership analysis
 └── synthesis/          # Final report sections and thesis

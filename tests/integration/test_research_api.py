@@ -1,16 +1,17 @@
 """Integration tests for research API endpoints."""
 
 import asyncio
-import tempfile
 import shutil
+import tempfile
 from unittest.mock import patch
+
 import pytest
 from fastapi.testclient import TestClient
 
 from src.main import create_app
-from src.services.session_manager import get_session_manager
+from src.models.assessment import AssessmentResult, UserSession
 from src.services.research_database import ResearchDatabase
-from src.models.assessment import UserSession, AssessmentResult
+from src.services.session_manager import get_session_manager
 
 
 class TestResearchAPI:
@@ -48,12 +49,12 @@ class TestResearchAPI:
             report_complexity="intermediate",
             research_database_path="research_database/sessions/test-session-123/AAPL"
         )
-        
+
         # Add to session manager
         session_manager = get_session_manager()
         session_manager.create_session("AAPL")
         session_manager._sessions["test-session-123"] = session.model_dump()
-        
+
         return session
 
     def test_start_research_valid_session(self, client, test_session):
@@ -62,7 +63,7 @@ class TestResearchAPI:
             "/api/research/start",
             json={"session_id": "test-session-123"}
         )
-        
+
         assert response.status_code == 202
         data = response.json()
         assert data["research_id"] == "test-session-123"
@@ -75,7 +76,7 @@ class TestResearchAPI:
             "/api/research/start",
             json={"session_id": "nonexistent-session"}
         )
-        
+
         assert response.status_code == 404
         assert "not found" in response.json()["detail"]
 
@@ -87,15 +88,15 @@ class TestResearchAPI:
             ticker_symbol="AAPL",
             research_database_path="research_database/sessions/incomplete-session/AAPL"
         )
-        
+
         session_manager = get_session_manager()
         session_manager._sessions["incomplete-session"] = session.model_dump()
-        
+
         response = client.post(
             "/api/research/start",
             json={"session_id": "incomplete-session"}
         )
-        
+
         assert response.status_code == 400
         assert "complete assessment" in response.json()["detail"]
 
@@ -103,10 +104,10 @@ class TestResearchAPI:
         """Test getting research status for active session."""
         # Start research first
         client.post("/api/research/start", json={"session_id": "test-session-123"})
-        
+
         # Get status
         response = client.get("/api/research/status?session_id=test-session-123")
-        
+
         assert response.status_code == 200
         data = response.json()
         assert data["session_id"] == "test-session-123"
@@ -118,7 +119,7 @@ class TestResearchAPI:
     def test_get_research_status_nonexistent_session(self, client):
         """Test getting research status for non-existent session."""
         response = client.get("/api/research/status?session_id=nonexistent-session")
-        
+
         assert response.status_code == 404
 
     def test_get_research_database_valid_session(self, client, test_session, temp_research_db):
@@ -129,9 +130,9 @@ class TestResearchAPI:
             "test-session-123", "AAPL", "valuation", "test_analysis.md",
             "# Test Analysis\n\nTest content"
         )
-        
+
         response = client.get("/api/research/database?session_id=test-session-123")
-        
+
         assert response.status_code == 200
         data = response.json()
         assert data["session_id"] == "test-session-123"
@@ -143,7 +144,7 @@ class TestResearchAPI:
     def test_get_research_database_nonexistent_session(self, client):
         """Test getting research database for non-existent session."""
         response = client.get("/api/research/database?session_id=nonexistent-session")
-        
+
         assert response.status_code == 404
 
     def test_get_research_file_valid_file(self, client, test_session, temp_research_db):
@@ -154,11 +155,11 @@ class TestResearchAPI:
         temp_research_db.write_research_file(
             "test-session-123", "AAPL", "valuation", "dcf_analysis.md", content
         )
-        
+
         response = client.get(
             "/api/research/files/valuation/dcf_analysis.md?session_id=test-session-123"
         )
-        
+
         assert response.status_code == 200
         data = response.json()
         assert data["session_id"] == "test-session-123"
@@ -172,7 +173,7 @@ class TestResearchAPI:
         response = client.get(
             "/api/research/files/nonexistent/file.md?session_id=test-session-123"
         )
-        
+
         assert response.status_code == 404
         assert "not found" in response.json()["detail"]
 
@@ -181,7 +182,7 @@ class TestResearchAPI:
         response = client.get(
             "/api/research/files/valuation/analysis.md?session_id=invalid-session"
         )
-        
+
         assert response.status_code == 404
 
     @pytest.mark.asyncio
@@ -193,24 +194,24 @@ class TestResearchAPI:
             json={"session_id": "test-session-123"}
         )
         assert start_response.status_code == 202
-        
+
         # Wait for some research progress
         await asyncio.sleep(2)
-        
+
         # Check status
         status_response = client.get("/api/research/status?session_id=test-session-123")
         assert status_response.status_code == 200
         status_data = status_response.json()
-        
+
         # Should show progress
         assert status_data["progress_percentage"] >= 0
         assert status_data["status"] in ["active", "completed"]
-        
+
         # Check database contents
         db_response = client.get("/api/research/database?session_id=test-session-123")
         assert db_response.status_code == 200
         db_data = db_response.json()
-        
+
         # Should have handoffs from mock workflow
         assert db_data["handoff_count"] >= 0
 
@@ -220,14 +221,14 @@ class TestResearchAPI:
         session_manager = get_session_manager()
         session = session_manager.get_session("test-session-123")
         initial_status = session.get("status") if session else "unknown"
-        
+
         # Start research
         response = client.post(
             "/api/research/start",
             json={"session_id": "test-session-123"}
         )
         assert response.status_code == 202
-        
+
         # Check session status was updated
         updated_session = session_manager.get_session("test-session-123")
         assert updated_session.get("status") == "research"
@@ -240,7 +241,7 @@ class TestResearchAPI:
             json={"invalid_field": "value"}
         )
         assert response.status_code == 422  # Validation error
-        
+
         # Test with missing query parameters
         response = client.get("/api/research/status")
         assert response.status_code == 422  # Missing session_id parameter
@@ -250,12 +251,12 @@ class TestResearchAPI:
         # Create multiple test sessions
         sessions = []
         session_manager = get_session_manager()
-        
+
         for i in range(3):
             session_id = f"test-session-{i}"
             session = UserSession(
                 session_id=session_id,
-                ticker_symbol=f"TEST",
+                ticker_symbol="TEST",
                 user_expertise_level=5,
                 assessment_result=AssessmentResult(
                     session_id=session_id,
@@ -269,7 +270,7 @@ class TestResearchAPI:
             )
             session_manager._sessions[session_id] = session.model_dump()
             sessions.append(session_id)
-        
+
         # Start research for all sessions
         for session_id in sessions:
             response = client.post(
@@ -277,7 +278,7 @@ class TestResearchAPI:
                 json={"session_id": session_id}
             )
             assert response.status_code == 202
-        
+
         # Verify all sessions are tracked
         for session_id in sessions:
             response = client.get(f"/api/research/status?session_id={session_id}")
@@ -287,16 +288,16 @@ class TestResearchAPI:
         """Test that research database maintains proper file structure."""
         # Start research to create directory structure
         client.post("/api/research/start", json={"session_id": "test-session-123"})
-        
+
         # Check that session directory was created
         session_dir = temp_research_db.sessions_path / "test-session-123" / "AAPL"
         assert session_dir.exists()
-        
+
         # Check agent directories
         agent_dirs = ["valuation", "strategic", "historical", "synthesis", "meta"]
         for agent_dir in agent_dirs:
             assert (session_dir / agent_dir).exists()
-        
+
         # Check metadata files
         meta_dir = session_dir / "meta"
         metadata_files = ["file_index.yaml", "cross_references.yaml", "agent_activity.yaml"]

@@ -1,0 +1,965 @@
+# GPT-5 Agent Prompting Guide for StockIQ
+## Comprehensive Best Practices for AI Agent Development
+## UPDATED: August 24, 2025 - Added working patterns from Valuation Agent implementation
+
+### Table of Contents
+1. [Core Philosophy](#core-philosophy)
+2. [GPT-5 Specific Features](#gpt5-specific-features)  
+3. [Agent Architecture Patterns](#agent-architecture-patterns)
+4. [Prompt Engineering Framework](#prompt-engineering-framework)
+5. [Tool Calling & Web Search](#tool-calling--web-search)
+6. [Quality Gates & Validation](#quality-gates--validation)
+7. [Testing & Debugging](#testing--debugging)
+8. [Performance Optimization](#performance-optimization)
+9. [Common Pitfalls & Solutions](#common-pitfalls--solutions)
+10. [Example Implementations](#example-implementations)
+
+---
+
+## Core Philosophy
+
+### Design Principles for AI Agents
+- **Precision over Verbosity**: GPT-5 excels with clear, specific instructions
+- **Conservative Bias**: Default to lower assumptions unless justified
+- **Source Attribution**: Every claim must have verifiable citations
+- **Expertise Adaptation**: Tailor output depth to user knowledge level
+- **Systematic Methodology**: Follow repeatable analytical frameworks
+- **Quality Gates**: Never ship without validation checks
+
+### The SAFER Framework
+**S**ource everything with citations  
+**A**daptive depth based on expertise  
+**F**ormula-driven calculations (show the math)  
+**E**rror handling with graceful degradation  
+**R**eproducible methodology with audit trails
+
+---
+
+## GPT-5 Specific Features
+
+### Reasoning Effort Control
+```python
+# Configure reasoning effort based on task complexity
+response = await client.responses.create(
+    model="gpt-5-2025-08-07",
+    reasoning_effort="medium",  # Options: minimal, low, medium, high
+    messages=[...],
+    tools=[...]
+)
+```
+
+**Reasoning Effort Guidelines:**
+- **Minimal**: Simple lookups, basic calculations, status updates
+- **Low**: Standard analysis with established patterns
+- **Medium**: Complex multi-step analysis, financial modeling (DEFAULT)
+- **High**: Novel problems, edge cases, critical decisions
+
+### Verbosity Parameter
+```python
+# Global verbosity setting with natural language overrides
+response = await client.responses.create(
+    model="gpt-5-2025-08-07",
+    verbosity="low",  # Options: low, medium, high
+    messages=[
+        {"role": "system", "content": "Use high verbosity for code explanations only"},
+        {"role": "user", "content": "Analyze AAPL financials"}
+    ]
+)
+```
+
+### Web Search Integration
+```python
+# GPT-5 native web search with context control
+response = await client.responses.create(
+    model="gpt-5-2025-08-07",
+    reasoning_effort="medium",
+    tools=[
+        {
+            "type": "web_search_preview",
+            "search_context_size": "high"  # Options: low, medium, high
+        }
+    ],
+    messages=[...]
+)
+```
+
+**Web Search Best Practices:**
+- Use specific search terms: "AAPL 10-K 2023 cash flow statement"
+- Prioritize primary sources: SEC filings, earnings releases
+- Parallel search strategy for efficiency
+- Extract citations automatically from search results
+
+---
+
+## Agent Architecture Patterns
+
+### 1. Research Agent Pattern
+```python
+class ResearchAgent(BaseAgent):
+    """Template for research-focused agents"""
+    
+    async def conduct_research(self, session_id: str, ticker: str, 
+                             expertise_level: int, context: dict = None) -> AgentResult:
+        """
+        Standard research workflow:
+        1. Context gathering (web search)
+        2. Data analysis (calculations/modeling)  
+        3. Synthesis (insights/recommendations)
+        4. Output generation (structured files)
+        5. Validation (quality checks)
+        """
+        start_time = datetime.now()
+        
+        try:
+            # Step 1: Gather context
+            research_data = await self._gather_research_context(ticker, expertise_level)
+            
+            # Step 2: Analyze data
+            analysis = await self._perform_analysis(research_data, context)
+            
+            # Step 3: Generate outputs
+            research_files = await self._create_research_outputs(
+                session_id, ticker, analysis, expertise_level
+            )
+            
+            # Step 4: Validate results
+            validation_result = await self._validate_outputs(research_files, analysis)
+            
+            if not validation_result.passed:
+                raise ValueError(f"Validation failed: {validation_result.errors}")
+            
+            return AgentResult(
+                agent_name=self.agent_name,
+                success=True,
+                research_files_created=research_files,
+                summary=analysis.get("summary", ""),
+                token_usage=research_data.get("token_usage", 0),
+                execution_time_seconds=(datetime.now() - start_time).total_seconds(),
+                confidence_score=analysis.get("confidence", 0.5)
+            )
+            
+        except Exception as e:
+            logger.error(f"Research failed for {ticker}: {str(e)}")
+            return AgentResult(
+                agent_name=self.agent_name,
+                success=False,
+                error_message=str(e),
+                execution_time_seconds=(datetime.now() - start_time).total_seconds()
+            )
+```
+
+### 2. Analysis Agent Pattern
+```python
+class AnalysisAgent(BaseAgent):
+    """Template for calculation-heavy agents"""
+    
+    def __init__(self):
+        super().__init__("analysis_agent")
+        self.calculator = CalculationEngine()
+        self.validator = DataValidator()
+    
+    async def _perform_calculations(self, data: dict) -> dict:
+        """Standardized calculation workflow"""
+        
+        # 1. Validate inputs
+        validation = self.validator.validate_inputs(data)
+        if not validation.is_valid:
+            raise ValueError(f"Invalid inputs: {validation.errors}")
+        
+        # 2. Apply calculations
+        results = {}
+        for calc_name, calc_func in self.calculations.items():
+            try:
+                result = calc_func(data)
+                results[calc_name] = result
+                logger.debug(f"Calculated {calc_name}: {result}")
+            except Exception as e:
+                logger.warning(f"Calculation {calc_name} failed: {e}")
+                results[calc_name] = None
+        
+        # 3. Cross-validate results
+        cross_validation = self.validator.cross_validate(results)
+        if not cross_validation.passed:
+            logger.warning(f"Cross-validation issues: {cross_validation.warnings}")
+        
+        return results
+```
+
+---
+
+## Prompt Engineering Framework
+
+### System Prompt Structure Template
+```
+# [AGENT NAME] v[VERSION] — [PRIMARY PURPOSE]
+
+## Mission Statement
+[Clear, specific description of agent's role and objectives]
+
+## Core Methodology Framework
+[Detailed analytical framework with formulas and processes]
+
+### [Method 1 Name] ([Priority Level])
+**[Sub-process]:**
+```
+[Formula or process step]
+[Expected input/output formats]
+```
+
+## Expertise Level Adaptation Protocol
+### Executive Level (1-6): [Focus areas]
+**Output Structure:**
+- [Key deliverable 1]
+- [Key deliverable 2]
+
+### Advanced Level (7-10): [Focus areas]  
+**Output Structure:**
+- [Detailed deliverable 1]
+- [Technical deliverable 2]
+
+## Data Quality & Citation Standards
+### Mandatory Source Hierarchy
+1. **Primary:** [Most authoritative sources]
+2. **Secondary:** [Acceptable alternatives]
+3. **Tertiary:** [Last resort sources]
+
+### Citation Format Requirements
+[Specific format with examples]
+
+## Conservative Bias Framework
+[Rules for assumptions and stress testing]
+
+## Tool Calling & Reasoning Instructions
+### Web Search Execution
+**Search Strategy:**
+[Specific search approaches]
+
+**Reasoning Effort:** [Level]
+[Justification for reasoning level choice]
+
+## Output Quality Gates
+### DO-NOT-DELIVER Checklist
+- [ ] [Critical requirement 1]
+- [ ] [Critical requirement 2]
+- [ ] [Critical requirement 3]
+
+## Response Format Template
+[Exact structure for outputs]
+```
+
+### Prompt Engineering Best Practices
+
+#### 1. Instruction Hierarchy (Critical)
+```
+NEVER create contradictory instructions like:
+❌ BAD: "Never take action without user consent" + "Auto-execute for urgent cases"
+✅ GOOD: "Never take action without user consent, except for emergency scenarios defined in Section 3.2"
+```
+
+#### 2. Context Gathering Instructions
+```xml
+<context_gathering>
+Goal: [Specific objective]
+Method:
+- [Specific approach 1]
+- [Specific approach 2]
+Early Stop Criteria:
+- [When to stop searching]
+- [Quality threshold met]
+Quality Gate: [Minimum requirements]
+</context_gathering>
+```
+
+#### 3. Tool Preambles (Progress Communication)
+```xml
+<tool_preambles>
+- Always begin by rephrasing the user's goal clearly
+- Outline structured plan with numbered steps
+- Narrate progress during execution
+- Summarize completed work at the end
+</tool_preambles>
+```
+
+#### 4. Persistence Instructions
+```xml
+<persistence>
+- Continue until task is completely resolved
+- Never stop on uncertainty—research and proceed
+- Document assumptions and continue
+- Only terminate when problem is fully solved
+</persistence>
+```
+
+---
+
+## Tool Calling & Web Search
+
+### Web Search Strategy Pattern (WORKING - From Valuation Agent Fix)
+```python
+# This pattern successfully gets real financial data
+async def conduct_research(self, ticker: str) -> dict:
+    """Optimized web search pattern for financial data"""
+    
+    # BETTER APPROACH (Tested August 24, 2025):
+    # Use single comprehensive prompt with web_search tool
+    research_prompt = f"""
+    Using web search for {ticker}:
+    1. Most recent 10-K/annual and latest quarterly
+    2. Financial metrics: Revenue, CFO, CapEx, FCF, shares
+    3. Current stock price with date/time
+    4. DATA SOURCES TO PREFER: sec.gov, company IR
+    5. Inline citations: [Source: document, date]
+    """
+    
+    # Use GPT-5 Responses API with web_search tool
+    response = self.client.responses.create(
+        model="gpt-5",
+        input=[{"role": "user", "content": research_prompt}],
+        tools=[{"type": "web_search"}],
+        reasoning={"effort": "low"},
+        text={"verbosity": "low"},
+        max_output_tokens=1800
+    )
+    content = response.output[0].content[0].text
+    
+    # Consolidate and validate results
+    consolidated_data = self._consolidate_search_results(search_results)
+    
+    return {
+        "financial_data": consolidated_data,
+        "citations": self._extract_citations(search_results),
+        "token_usage": sum(r.get("token_usage", 0) for r in search_results)
+    }
+```
+
+### Citation Extraction Pattern
+```python
+def _extract_citations(self, content: str) -> list[str]:
+    """Extract and validate citations from content"""
+    citations = []
+    
+    # Primary citation patterns
+    patterns = [
+        r"(?i)source:\s*([^\n]+)",
+        r"(?i)citation:\s*([^\n]+)", 
+        r"https?://[^\s\]]+",
+        r"\[([^\]]+\.(?:pdf|html|htm))\]",
+        r"(?i)(?:10-K|10-Q|8-K)\s*[\d,\s]*(?:page|p\.)\s*(\d+)"
+    ]
+    
+    for pattern in patterns:
+        matches = re.findall(pattern, content)
+        citations.extend(matches)
+    
+    # Validate and clean citations
+    validated_citations = []
+    for citation in citations:
+        if self._validate_citation(citation):
+            validated_citations.append(citation.strip())
+    
+    return validated_citations[:10]  # Limit to top 10
+```
+
+---
+
+## Quality Gates & Validation
+
+### Validation Framework Pattern
+```python
+class AnalysisValidator:
+    """Comprehensive validation for agent outputs"""
+    
+    def validate_analysis(self, analysis: dict, requirements: dict) -> ValidationResult:
+        """Multi-layer validation approach"""
+        
+        validations = [
+            self._validate_data_completeness(analysis, requirements),
+            self._validate_calculation_accuracy(analysis),
+            self._validate_assumption_reasonableness(analysis),
+            self._validate_citation_quality(analysis),
+            self._validate_consistency_checks(analysis),
+        ]
+        
+        errors = []
+        warnings = []
+        
+        for validation in validations:
+            errors.extend(validation.errors)
+            warnings.extend(validation.warnings)
+        
+        return ValidationResult(
+            passed=len(errors) == 0,
+            errors=errors,
+            warnings=warnings,
+            confidence_score=self._calculate_confidence(validations)
+        )
+    
+    def _validate_calculation_accuracy(self, analysis: dict) -> ValidationCheck:
+        """Validate mathematical accuracy"""
+        errors = []
+        
+        # Check DCF calculations
+        if "dcf_model" in analysis:
+            dcf = analysis["dcf_model"]
+            
+            # Terminal value reasonableness
+            if dcf.get("terminal_growth_rate", 0) > 0.04:
+                errors.append("Terminal growth rate exceeds 4% (unrealistic)")
+            
+            # WACC bounds check
+            wacc = dcf.get("wacc", 0)
+            if wacc < 0.05 or wacc > 0.20:
+                errors.append(f"WACC {wacc:.1%} outside reasonable range (5-20%)")
+            
+            # Cash flow growth consistency
+            fcf_growth = self._calculate_implied_growth(dcf.get("free_cash_flows", []))
+            if any(g > 50 for g in fcf_growth):
+                errors.append("Unrealistic cash flow growth detected")
+        
+        return ValidationCheck(errors=errors)
+```
+
+### DO-NOT-DELIVER Checklist Template
+```python
+def pre_delivery_validation(self, agent_output: dict) -> bool:
+    """Hard gate before any output delivery"""
+    
+    requirements = [
+        ("citations_present", lambda x: len(x.get("citations", [])) >= 3),
+        ("calculations_shown", lambda x: "methodology" in x),
+        ("assumptions_documented", lambda x: "assumptions" in x),
+        ("confidence_assessed", lambda x: x.get("confidence", 0) > 0),
+        ("expertise_adapted", lambda x: "expertise_level" in x),
+        ("risks_identified", lambda x: len(x.get("risks", [])) >= 2),
+        ("cross_validated", lambda x: x.get("validation_passed", False))
+    ]
+    
+    for req_name, req_check in requirements:
+        if not req_check(agent_output):
+            logger.error(f"Pre-delivery check failed: {req_name}")
+            return False
+    
+    return True
+```
+
+---
+
+## Testing & Debugging
+
+### Agent Testing Framework
+```python
+class AgentTestSuite:
+    """Comprehensive testing for AI agents"""
+    
+    def __init__(self, agent_class):
+        self.agent = agent_class()
+        self.mock_data = self._load_test_data()
+    
+    async def test_full_workflow(self):
+        """End-to-end workflow testing"""
+        test_cases = [
+            ("AAPL", 5, "Technology company"),
+            ("JPM", 8, "Financial services"),
+            ("TSLA", 3, "Electric vehicle manufacturer")
+        ]
+        
+        for ticker, expertise, description in test_cases:
+            result = await self.agent.conduct_research(
+                session_id="test_session",
+                ticker=ticker,
+                expertise_level=expertise
+            )
+            
+            # Validate result structure
+            assert result.success, f"Agent failed for {ticker}: {result.error_message}"
+            assert len(result.research_files_created) > 0, "No research files created"
+            assert result.confidence_score > 0, "Invalid confidence score"
+            
+            # Validate output quality
+            analysis = self._parse_agent_output(result)
+            validation = self._validate_analysis_quality(analysis)
+            assert validation.passed, f"Quality validation failed: {validation.errors}"
+    
+    def test_error_handling(self):
+        """Test graceful failure scenarios"""
+        error_scenarios = [
+            ("INVALID", ValueError, "Invalid ticker"),
+            ("", ValueError, "Empty ticker"),
+            (None, TypeError, "None ticker"),
+        ]
+        
+        for ticker, expected_error, description in error_scenarios:
+            with pytest.raises(expected_error):
+                await self.agent.conduct_research("test", ticker, 5)
+```
+
+### Debugging Techniques
+
+#### 1. Structured Logging
+```python
+import logging
+
+# Configure structured logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+
+logger = logging.getLogger(__name__)
+
+# Agent execution logging
+def log_agent_step(step_name: str, data: dict):
+    """Structured logging for agent steps"""
+    logger.info(f"Agent Step: {step_name}", extra={
+        "step": step_name,
+        "data_size": len(str(data)),
+        "timestamp": datetime.now().isoformat()
+    })
+```
+
+#### 2. Response Analysis
+```python
+def analyze_gpt_response(response):
+    """Analyze GPT response for debugging"""
+    analysis = {
+        "reasoning_length": len(response.choices[0].message.get("reasoning", "")),
+        "content_length": len(response.choices[0].message.content),
+        "tool_calls": len(response.choices[0].message.tool_calls or []),
+        "token_usage": response.usage.dict() if response.usage else None,
+        "finish_reason": response.choices[0].finish_reason
+    }
+    
+    logger.debug(f"GPT Response Analysis: {analysis}")
+    return analysis
+```
+
+---
+
+## Performance Optimization
+
+### Token Usage Optimization
+```python
+class TokenOptimizer:
+    """Optimize token usage across agent operations"""
+    
+    def __init__(self, max_context_tokens: int = 128000):
+        self.max_context_tokens = max_context_tokens
+        self.token_buffer = 10000  # Safety margin
+    
+    def optimize_context(self, context: str) -> str:
+        """Intelligently truncate context while preserving key information"""
+        
+        # Estimate tokens (rough approximation: 1 token ≈ 4 chars)
+        estimated_tokens = len(context) // 4
+        
+        if estimated_tokens <= self.max_context_tokens - self.token_buffer:
+            return context
+        
+        # Prioritized truncation strategy
+        sections = self._split_into_sections(context)
+        prioritized_sections = self._prioritize_sections(sections)
+        
+        optimized_context = ""
+        token_count = 0
+        
+        for priority, section in prioritized_sections:
+            section_tokens = len(section) // 4
+            
+            if token_count + section_tokens <= self.max_context_tokens - self.token_buffer:
+                optimized_context += section
+                token_count += section_tokens
+            else:
+                break
+        
+        return optimized_context
+```
+
+### Caching Strategy
+```python
+from functools import lru_cache
+import hashlib
+
+class AgentCache:
+    """Intelligent caching for agent operations"""
+    
+    def __init__(self):
+        self.search_cache = {}
+        self.analysis_cache = {}
+    
+    def cache_search_result(self, query: str, result: dict, ttl_hours: int = 1):
+        """Cache search results with TTL"""
+        cache_key = hashlib.md5(query.encode()).hexdigest()
+        expiry = datetime.now() + timedelta(hours=ttl_hours)
+        
+        self.search_cache[cache_key] = {
+            "result": result,
+            "expiry": expiry,
+            "query": query
+        }
+    
+    def get_cached_search(self, query: str) -> dict | None:
+        """Retrieve cached search result if valid"""
+        cache_key = hashlib.md5(query.encode()).hexdigest()
+        
+        if cache_key in self.search_cache:
+            cached_item = self.search_cache[cache_key]
+            
+            if datetime.now() < cached_item["expiry"]:
+                logger.info(f"Cache hit for search query: {query}")
+                return cached_item["result"]
+            else:
+                # Clean up expired cache
+                del self.search_cache[cache_key]
+        
+        return None
+```
+
+---
+
+## Common Pitfalls & Solutions
+
+### 1. Contradictory Instructions
+**❌ PROBLEM:**
+```
+"Always cite sources" + "Provide quick answers without research"
+```
+
+**✅ SOLUTION:**
+```
+"Always cite sources when making factual claims. For quick estimates, clearly mark as [ESTIMATE] and note limitations."
+```
+
+### 2. Ambiguous Expertise Adaptation
+**❌ PROBLEM:**
+```
+"Adjust complexity for user expertise level"
+```
+
+**✅ SOLUTION:**
+```
+# Executive Level (1-6)
+- Focus on key insights and recommendations
+- Limit technical detail to essential concepts
+- Provide clear action items
+
+# Advanced Level (7-10)  
+- Include full technical methodology
+- Show detailed calculations and assumptions
+- Provide comprehensive sensitivity analysis
+```
+
+### 3. Poor Error Handling
+**❌ PROBLEM:**
+```python
+# Silent failure
+try:
+    result = calculate_dcf(data)
+except:
+    result = None
+```
+
+**✅ SOLUTION:**
+```python
+# Graceful degradation with user feedback
+try:
+    result = calculate_dcf(data)
+except ValueError as e:
+    logger.error(f"DCF calculation failed: {e}")
+    result = create_fallback_estimate(data, error_context=str(e))
+    result.add_warning("DCF calculated using fallback method due to data limitations")
+```
+
+### 4. Inconsistent Citation Format
+**❌ PROBLEM:**
+```
+"Revenue from earnings report"
+"10-K page 15"
+"Bloomberg data"
+```
+
+**✅ SOLUTION:**
+```
+[Source: AAPL 10-K 2023, Consolidated Statements of Operations, p.31]
+[Source: AAPL Q3 2023 Earnings Release, Financial Summary, July 2023]
+[Source: Bloomberg Terminal, AAPL Financials, accessed 2023-08-23]
+```
+
+---
+
+## CRITICAL LESSONS FROM VALUATION AGENT FIX (August 24, 2025)
+
+### What Was Breaking:
+1. Using `verbosity` as top-level parameter (doesn't exist)
+2. Wrong format for `reasoning` parameter
+3. Using `max_completion_tokens` instead of `max_output_tokens`
+4. Trying to use Chat Completions API instead of Responses API
+5. Simulating web search instead of using real tool
+
+### What Actually Works:
+```python
+# Step 1: Research with web search
+temp_md = client.respond_with_web_search(
+    messages=[...],
+    tools=[{"type": "web_search"}],
+    reasoning_effort="low",
+    verbosity="low",
+    max_output_tokens=1800
+)
+
+# Step 2: Calculations with the data
+valuation_md = client.create_completion(
+    messages=[...],
+    temperature=0.1,  # Low for precision
+    use_complex_model=True
+)
+```
+
+## Example Implementations
+
+### 1. Financial Analysis Agent (Updated with Working Pattern)
+```python
+class FinancialAnalysisAgent(BaseAgent):
+    """
+    Complete example of GPT-5 powered financial analysis agent
+    following all best practices outlined in this guide
+    """
+    
+    def __init__(self):
+        super().__init__("financial_analysis_agent")
+        self.openai_client = openai.OpenAI()
+        self.calculator = FinancialCalculator()
+        self.validator = AnalysisValidator()
+        self.cache = AgentCache()
+    
+    async def conduct_research(
+        self,
+        session_id: str,
+        ticker: str,
+        expertise_level: int,
+        context: dict = None
+    ) -> AgentResult:
+        """Main research workflow implementation"""
+        
+        start_time = datetime.now()
+        self.log_research_start(session_id, ticker, expertise_level)
+        
+        try:
+            # Step 1: Gather research data
+            research_data = await self._conduct_web_search_research(ticker, expertise_level)
+            
+            # Step 2: Perform financial analysis
+            analysis = await self._perform_financial_analysis(research_data)
+            
+            # Step 3: Generate expert insights
+            insights = await self._generate_investment_insights(
+                analysis, expertise_level, research_data
+            )
+            
+            # Step 4: Create structured outputs
+            research_files = await self._create_research_files(
+                session_id, ticker, analysis, insights, expertise_level
+            )
+            
+            # Step 5: Validate results
+            validation = self.validator.validate_analysis(analysis, {
+                "minimum_data_points": 10,
+                "required_calculations": ["dcf", "ratios", "peer_comparison"],
+                "citation_requirements": 5
+            })
+            
+            if not validation.passed:
+                raise ValueError(f"Analysis validation failed: {validation.errors}")
+            
+            execution_time = (datetime.now() - start_time).total_seconds()
+            
+            return AgentResult(
+                agent_name=self.agent_name,
+                success=True,
+                research_files_created=research_files,
+                summary=insights.get("investment_thesis", "Analysis completed"),
+                token_usage=research_data.get("token_usage", 0),
+                execution_time_seconds=execution_time,
+                confidence_score=validation.confidence_score
+            )
+            
+        except Exception as e:
+            logger.error(f"Financial analysis failed for {ticker}: {str(e)}")
+            return AgentResult(
+                agent_name=self.agent_name,
+                success=False,
+                error_message=str(e),
+                execution_time_seconds=(datetime.now() - start_time).total_seconds()
+            )
+    
+    async def _conduct_web_search_research(self, ticker: str, expertise_level: int) -> dict:
+        """GPT-5 web search implementation"""
+        
+        # Check cache first
+        cache_key = f"{ticker}_{expertise_level}"
+        cached_result = self.cache.get_cached_search(cache_key)
+        if cached_result:
+            return cached_result
+        
+        search_prompt = f"""
+        Conduct institutional-grade financial analysis for {ticker}.
+        
+        Required Financial Data:
+        1. Latest Financial Statements (3 years historical):
+           - Income Statement: Revenue, EBIT, Net Income, Margins
+           - Balance Sheet: Assets, Debt, Equity, Working Capital
+           - Cash Flow: Operating CF, Free Cash Flow, Capex
+        
+        2. Valuation Metrics:
+           - Current stock price and market cap
+           - Trading multiples: P/E, EV/EBITDA, P/B, P/S
+           - Historical multiple ranges and peer comparisons
+        
+        3. Market Data:
+           - Risk-free rate (10-year Treasury)
+           - Market risk premium and company beta
+           - Analyst estimates and consensus targets
+        
+        4. Peer Analysis:
+           - Identify 5-7 direct competitors
+           - Compare financial metrics and valuation multiples
+           - Industry growth rates and margin trends
+        
+        CRITICAL: Include specific citations for all quantitative data.
+        Format: [Source: Document Name, Section, Date]
+        
+        Analysis Depth: {"Advanced technical detail" if expertise_level >= 7 else "Executive summary focus"}
+        """
+        
+        try:
+            response = self.openai_client.chat.completions.create(
+                model="gpt-5-2025-08-07",
+                reasoning_effort="medium",  # Balanced speed vs quality for financial analysis
+                tools=[
+                    {
+                        "type": "web_search_preview",
+                        "search_context_size": "high"  # Maximum context for comprehensive financial data
+                    }
+                ],
+                messages=[
+                    {
+                        "role": "system",
+                        "content": FINANCIAL_ANALYSIS_SYSTEM_PROMPT
+                    },
+                    {
+                        "role": "user",
+                        "content": search_prompt
+                    }
+                ],
+                temperature=0.1  # Low temperature for factual accuracy
+            )
+            
+            # Parse response and extract structured data
+            content = response.choices[0].message.content
+            financial_data = self._parse_financial_data(content, ticker)
+            citations = self._extract_citations(content)
+            
+            result = {
+                "raw_content": content,
+                "financial_data": financial_data,
+                "citations": citations,
+                "token_usage": response.usage.total_tokens if response.usage else 0
+            }
+            
+            # Cache the result
+            self.cache.cache_search_result(cache_key, result, ttl_hours=1)
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Web search research failed: {e}")
+            return {
+                "raw_content": f"Research failed: {str(e)}",
+                "financial_data": {},
+                "citations": [],
+                "token_usage": 0
+            }
+```
+
+### 2. System Prompt Template (Financial Analysis)
+```
+FINANCIAL_ANALYSIS_SYSTEM_PROMPT = """
+# Financial Analysis Expert v2.0 — Institutional-Grade Equity Research
+
+## Mission Statement
+You are an elite institutional equity research analyst specializing in comprehensive 
+financial analysis, valuation modeling, and investment recommendations. Your analysis 
+will inform investment decisions for sophisticated institutional investors.
+
+## Core Methodology Framework
+
+### DCF Valuation Engine (Primary Method)
+**5-Year Cash Flow Projection:**
+```
+FCF_t = NOPAT_t + D&A_t - Capex_t - ΔNWC_t
+Enterprise Value = Σ(FCF_t / (1+WACC)^t) + Terminal_Value / (1+WACC)^n
+Intrinsic Value = (Enterprise Value - Net Debt + Cash) / Shares Outstanding
+```
+
+### WACC Calculation (CAPM Framework):
+```
+Cost of Equity = Risk_Free_Rate + Beta × Market_Risk_Premium
+WACC = (E/V × Cost_of_Equity) + (D/V × Cost_of_Debt × (1 - Tax_Rate))
+```
+
+## Data Quality Standards
+### Citation Requirements
+Every quantitative claim must include: [Source: Document, Section, Date]
+Examples:
+- Revenue growth 15% [Source: AAPL 10-K 2023, MD&A, p.23]
+- Beta 1.2 [Source: Bloomberg Terminal, Risk Metrics, 2023-08-23]
+
+### Conservative Bias Framework
+- Terminal growth ≤ 2.5% unless justified
+- Margins fade to industry median over 5-7 years
+- Stress test assumptions with ±20% sensitivity
+- Document all assumptions with rationale
+
+## Web Search Strategy
+- Prioritize SEC filings (10-K, 10-Q, 8-K) as primary sources
+- Cross-reference analyst reports from major investment banks
+- Use parallel search queries for comprehensive data gathering
+- Validate data points across multiple sources
+
+## Output Quality Gates
+Never deliver analysis without:
+- [ ] Minimum 5 primary source citations
+- [ ] Complete DCF model with shown calculations  
+- [ ] Peer comparison with 5+ comparable companies
+- [ ] Sensitivity analysis on key assumptions
+- [ ] Investment risks clearly identified
+- [ ] Recommendation with price target
+
+## Expertise Level Adaptation
+- Executive (1-6): Focus on investment thesis, price target, key risks
+- Advanced (7-10): Include full technical methodology, detailed calculations
+
+Your analysis must be rigorous, well-sourced, and actionable for investment decisions.
+"""
+```
+
+---
+
+## Conclusion
+
+This guide provides the foundational framework for building robust, GPT-5 powered AI agents. Key takeaways:
+
+1. **Systematic Approach**: Follow structured methodologies with clear quality gates
+2. **GPT-5 Features**: Leverage reasoning effort, verbosity control, and web search capabilities  
+3. **Quality First**: Never compromise on validation and source attribution
+4. **User-Centric**: Adapt complexity to user expertise and needs
+5. **Maintainable**: Write agents that are testable, debuggable, and improvable
+
+Remember: The goal is not just to create AI agents, but to create reliable, professional-grade analysis tools that institutional investors can trust with real investment decisions.
+
+## Version History
+- v1.0 (2023-08-23): Initial comprehensive guide
+- Future versions will incorporate lessons learned from production deployments
+
+---
+
+*This guide is a living document. Update it as you discover new patterns, solve common problems, or as GPT-5 capabilities evolve.*

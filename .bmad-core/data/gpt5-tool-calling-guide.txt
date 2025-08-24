@@ -1,0 +1,355 @@
+# GPT-5 Tool Calling Guide - UPDATED AUGUST 24, 2025
+# Comprehensive guide for implementing function calling with GPT-5 Responses API
+# Based on OpenAI Cookbook and latest platform documentation
+
+## Overview
+GPT-5 tool calling provides powerful integration with external systems and data. This guide covers both web search (built-in) and custom function tools.
+
+## WORKING PATTERNS FROM OPENAI COOKBOOK
+
+### Basic GPT-5 Responses API Setup
+```python
+from openai import OpenAI
+from typing import List, Dict, Any, Optional
+
+class OpenAIClient:
+    def __init__(self, api_key: Optional[str] = None):
+        self.client = OpenAI(api_key=api_key)
+    
+    def respond(
+        self,
+        messages: List[Dict[str, Any]], 
+        *,
+        tools: Optional[List[Dict[str, Any]]] = None,
+        reasoning_effort: str = "minimal",   # "minimal" | "low" | "medium" | "high"
+        verbosity: str = "low",              # "low" | "medium" | "high"
+        max_output_tokens: int = 1800,
+        temperature: Optional[float] = None, # omit for GPT-5 unless needed
+        store: bool = False
+    ):
+        kwargs = {
+            "model": "gpt-5",
+            "input": messages,               # NOT "messages" - use "input"!
+            "reasoning": {"effort": reasoning_effort},
+            "text": {"verbosity": verbosity},
+            "max_output_tokens": max_output_tokens,
+            "store": store,
+        }
+        if tools:
+            kwargs["tools"] = tools
+        if temperature is not None:
+            kwargs["temperature"] = temperature
+            
+        return self.client.responses.create(**kwargs)
+```
+
+### Web Search Tool (Most Important for Financial Data)
+
+✅ **WORKING PATTERN** (From OpenAI Cookbook):
+```python
+def search_financial_data(ticker: str) -> str:
+    """Get real financial data using GPT-5 built-in web search."""
+    
+    prompt = f"""
+    Using web search for {ticker}:
+    - Most recent 10-K/annual report and latest quarterly
+    - Current stock price with date/time 
+    - Financial metrics: Revenue, FCF, shares outstanding, debt
+    - DATA SOURCES TO PREFER: sec.gov, company IR, exchanges
+    - Inline citations: [Source: document, date]
+    """
+    
+    response = client.respond(
+        messages=[{"role": "user", "content": prompt}],
+        tools=[{"type": "web_search"}],    # Built-in web search tool
+        reasoning_effort="low",            # Better than minimal for research
+        verbosity="low",                   # Keep output focused
+        max_output_tokens=1800,
+        store=True                         # Store for conversation continuity
+    )
+    
+    return response.output[0].content[0].text
+```
+
+## Custom Function Tools (JSON Schema-Based)
+
+### Basic Function Definition
+```python
+tools = [
+    {
+        "type": "function",
+        "function": {
+            "name": "calculate_fcf_yield",
+            "description": "Calculate free cash flow yield from financial data",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "fcf_per_share": {
+                        "type": "number",
+                        "description": "Free cash flow per share (last 12 months)"
+                    },
+                    "current_price": {
+                        "type": "number", 
+                        "description": "Current stock price"
+                    },
+                    "ticker": {
+                        "type": "string",
+                        "description": "Stock ticker symbol"
+                    }
+                },
+                "required": ["fcf_per_share", "current_price", "ticker"],
+                "additionalProperties": False
+            },
+            "strict": True  # Enable strict schema validation
+        }
+    }
+]
+
+# Use with GPT-5
+response = client.respond(
+    messages=[{"role": "user", "content": "Calculate FCF yield for AAPL"}],
+    tools=tools,
+    reasoning_effort="minimal",  # Function calling is precise
+    verbosity="low"
+)
+```
+
+### Processing Function Calls
+```python
+def handle_function_calls(response):
+    """Process function calls from GPT-5 response."""
+    
+    results = []
+    
+    for output_item in response.output:
+        if output_item.type == "function_call":
+            function_name = output_item.function.name
+            arguments = json.loads(output_item.function.arguments)
+            call_id = output_item.function.call_id
+            
+            # Execute your function
+            if function_name == "calculate_fcf_yield":
+                result = calculate_fcf_yield(**arguments)
+            else:
+                result = {"error": f"Unknown function: {function_name}"}
+            
+            results.append({
+                "role": "tool",
+                "tool_call_id": call_id,
+                "content": json.dumps(result)
+            })
+    
+    return results
+```
+
+## Configuration Options & Best Practices
+
+### Reasoning Effort Guidelines
+- **"minimal"**: Basic queries, simple calculations
+- **"low"**: Standard analysis, web search (recommended default)
+- **"medium"**: Complex analysis requiring multi-step thinking
+- **"high"**: Novel problems, edge cases (use sparingly - expensive)
+
+### Verbosity Control
+- **"low"**: Concise output (recommended for functions/data extraction)
+- **"medium"**: Balanced detail
+- **"high"**: Comprehensive explanations (use for complex analysis)
+
+### Web Search Best Practices
+```python
+# Good web search prompt structure
+search_prompt = f"""
+Using web search for {ticker}:
+
+REQUIRED DATA:
+1. Most recent 10-K/annual filing
+2. Latest quarterly report (10-Q)
+3. Current stock price and market cap
+4. Cash flow statement data (FCF, CFO, CapEx)
+
+DATA SOURCES TO PREFER:
+- sec.gov (SEC filings)
+- Company investor relations pages
+- Major exchanges (NYSE, NASDAQ)
+
+OUTPUT FORMAT:
+- Bullet points for each metric
+- Inline citations: [Source: document name, date]
+- If conflicting data found, note the discrepancy
+
+AVOID:
+- Blog posts and opinion pieces
+- Outdated information (prefer last 12 months)
+"""
+```
+
+### Error Handling
+```python
+def safe_gpt5_call(messages, tools=None):
+    """GPT-5 call with proper error handling."""
+    try:
+        response = client.respond(
+            messages=messages,
+            tools=tools,
+            reasoning_effort="low",
+            verbosity="low",
+            max_output_tokens=1800
+        )
+        return response.output[0].content[0].text
+        
+    except Exception as e:
+        logger.error(f"GPT-5 call failed: {e}")
+        if "rate_limit" in str(e).lower():
+            # Handle rate limiting
+            time.sleep(60)
+            return safe_gpt5_call(messages, tools)  # Retry once
+        else:
+            # Return fallback response
+            return "Analysis unavailable due to API error."
+```
+
+## Common Integration Patterns
+
+### 2-Step Workflow (Research → Analysis)
+```python
+async def two_step_analysis(ticker: str):
+    """Clean 2-step workflow: research then analyze."""
+    
+    # Step 1: Research with web search
+    research_response = client.respond(
+        messages=[{
+            "role": "user", 
+            "content": f"Research financial data for {ticker} with citations"
+        }],
+        tools=[{"type": "web_search"}],
+        reasoning_effort="low",
+        verbosity="low",
+        max_output_tokens=1800,
+        store=True
+    )
+    
+    research_data = research_response.output[0].content[0].text
+    
+    # Step 2: Analysis (no web search needed)
+    analysis_response = client.respond(
+        messages=[
+            {"role": "user", "content": f"Analyze this research data for {ticker}:"},
+            {"role": "user", "content": research_data},
+            {"role": "user", "content": "Provide valuation with IRR calculations."}
+        ],
+        reasoning_effort="minimal",  # Math/formatting
+        verbosity="medium",          # Detailed analysis
+        max_output_tokens=2200
+    )
+    
+    return {
+        "research": research_data,
+        "analysis": analysis_response.output[0].content[0].text
+    }
+```
+
+### File-Based Data Flow
+```python
+async def file_based_workflow(session_id: str, ticker: str):
+    """Store intermediate results in files for auditability."""
+    
+    # Step 1: Research → temp.md
+    research = await get_research_data(ticker)
+    temp_path = f"research_database/sessions/{session_id}/{ticker}/valuation/temp.md"
+    write_file(temp_path, research)
+    
+    # Step 2: Analysis → valuation.md  
+    analysis = await analyze_research(research, ticker)
+    val_path = f"research_database/sessions/{session_id}/{ticker}/valuation/valuation.md"
+    write_file(val_path, analysis)
+    
+    return [temp_path, val_path]
+```
+
+## Testing Patterns
+
+### Unit Tests (Mock GPT-5)
+```python
+from unittest.mock import patch, MagicMock
+
+@patch('openai.OpenAI')
+def test_valuation_workflow(mock_openai):
+    # Setup mock
+    mock_client = MagicMock()
+    mock_openai.return_value = mock_client
+    
+    # Mock response structure
+    mock_response = MagicMock()
+    mock_response.output = [MagicMock()]
+    mock_response.output[0].content = [MagicMock()]
+    mock_response.output[0].content[0].text = "Mock financial data with [Source: test]"
+    
+    mock_client.responses.create.return_value = mock_response
+    
+    # Test your agent
+    agent = ValuationAgent()
+    result = await agent.conduct_research("test", "AAPL", 5)
+    
+    # Verify
+    assert result.success
+    assert "AAPL" in result.summary
+    mock_client.responses.create.assert_called()
+```
+
+### Integration Tests (Optional Real API)
+```python
+import pytest
+import os
+
+@pytest.mark.skipif(not os.getenv("OPENAI_LIVE_TEST"), reason="Live API test")
+async def test_real_web_search():
+    """Test with real GPT-5 API (requires OPENAI_LIVE_TEST=1)."""
+    client = OpenAIClient()
+    
+    response = client.respond(
+        messages=[{"role": "user", "content": "Find Apple's latest FCF per share"}],
+        tools=[{"type": "web_search"}],
+        reasoning_effort="low",
+        max_output_tokens=800
+    )
+    
+    content = response.output[0].content[0].text
+    
+    # Basic validation
+    assert "AAPL" in content or "Apple" in content
+    assert "$" in content  # Should have financial figures
+    assert "Source:" in content  # Should have citations
+```
+
+## Troubleshooting Common Issues
+
+### 1. "AttributeError: 'OpenAI' object has no attribute 'create_completion'"
+**Fix:** Use Responses API (`client.responses.create()`) not Chat Completions
+
+### 2. "Invalid parameter: verbosity"  
+**Fix:** Use nested format: `text={"verbosity": "low"}` not `verbosity="low"`
+
+### 3. "Empty response or no citations"
+**Fix:** Add explicit citation request in prompt: "Include inline citations: [Source: document, date]"
+
+### 4. "Rate limiting or token errors"
+**Fix:** Use conservative defaults:
+- `reasoning_effort="minimal"` or `"low"`
+- `max_output_tokens=1800` (not too high)
+- `verbosity="low"` (unless you need detail)
+
+### 5. "Web search returns generic results"
+**Fix:** Be specific in prompts:
+- "Most recent 10-K filing" not "financial data"
+- "sec.gov and investor relations" not "any source"
+- Include ticker symbol in search terms
+
+## Key Changes From Previous Versions
+
+1. **API:** Use `client.responses.create()` not `client.chat.completions.create()`
+2. **Parameters:** `input` not `messages`, nested `reasoning`/`text` objects
+3. **Web Search:** Built-in `tools=[{"type": "web_search"}]` - no custom implementation needed
+4. **Token Budget:** `max_output_tokens` controls visible output (reasoning tokens separate)
+5. **Temperature:** Often ignored by GPT-5 - omit unless specifically needed
+
+This guide reflects current OpenAI documentation and working patterns as of August 24, 2025.

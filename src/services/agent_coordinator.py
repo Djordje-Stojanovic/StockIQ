@@ -4,6 +4,7 @@ import asyncio
 import logging
 from typing import Any
 
+from ..agents.valuation_agent import ValuationAgent
 from ..models.collaboration import AgentHandoff, AgentResult, ResearchStatus
 
 logger = logging.getLogger(__name__)
@@ -21,6 +22,15 @@ class AgentCoordinator:
             "historian_agent",
             "synthesis_agent",
         ]
+
+        # Initialize agent instances
+        self.agents = {
+            "valuation_agent": ValuationAgent(),
+            # Other agents will be added as they're implemented
+            "strategic_agent": None,  # Placeholder for future implementation
+            "historian_agent": None,  # Placeholder for future implementation
+            "synthesis_agent": None,  # Placeholder for future implementation
+        }
 
         # Track active research sessions
         self.active_sessions: dict[str, ResearchStatus] = {}
@@ -271,8 +281,25 @@ class AgentCoordinator:
 
                 logger.info(f"Starting {agent_name} for session {session_id}")
 
-                # Mock agent execution (replace with actual agent calls later)
-                await self._mock_agent_execution(session_id, agent_name, ticker, expertise_level)
+                # Execute agent - use real agent if available, otherwise mock
+                if self.agents[agent_name] is not None:
+                    result = await self._execute_real_agent(
+                        session_id, agent_name, ticker, expertise_level
+                    )
+                else:
+                    # Fall back to mock execution for unimplemented agents
+                    result = await self._mock_agent_execution(
+                        session_id, agent_name, ticker, expertise_level
+                    )
+
+                # Handle agent failure if needed
+                if not result.success:
+                    failure_handled = await self.handle_agent_failure(
+                        session_id, agent_name, Exception(result.error_message or "Agent execution failed")
+                    )
+                    if not failure_handled:
+                        # Critical failure, abort research
+                        return
 
                 # Simulate handoff to next agent (except for last agent)
                 if i < len(self.agent_order) - 1:
@@ -313,13 +340,92 @@ class AgentCoordinator:
                 status.status = "failed"
                 status.error_message = str(e)
 
+    async def _execute_real_agent(
+        self, session_id: str, agent_name: str, ticker: str, expertise_level: int
+    ) -> AgentResult:
+        """
+        Execute a real agent with proper context handling.
+
+        Args:
+            session_id: Session identifier
+            agent_name: Name of the agent to execute
+            ticker: Stock ticker symbol
+            expertise_level: User expertise level
+
+        Returns:
+            AgentResult from agent execution
+        """
+        try:
+            agent = self.agents[agent_name]
+            if agent is None:
+                raise ValueError(f"Agent {agent_name} not implemented")
+
+            # Prepare context from previous agents
+            context = self._build_agent_context(session_id, ticker, agent_name)
+
+            logger.info(f"Executing real agent {agent_name} for {ticker}")
+
+            # Execute the agent's research method
+            result = await agent.conduct_research(session_id, ticker, expertise_level, context)
+
+            logger.info(
+                f"Real agent {agent_name} completed for {ticker}: "
+                f"Success={result.success}, Files={len(result.research_files_created)}, "
+                f"Tokens={result.token_usage}, Time={result.execution_time_seconds:.1f}s"
+            )
+
+            return result
+
+        except Exception as e:
+            logger.error(f"Error executing real agent {agent_name}: {str(e)}")
+            return AgentResult(
+                agent_name=agent_name,
+                success=False,
+                summary=f"Agent {agent_name} failed during execution",
+                error_message=str(e),
+                execution_time_seconds=0.0,
+            )
+
+    def _build_agent_context(self, session_id: str, ticker: str, current_agent: str) -> dict[str, Any]:
+        """
+        Build context from previous agents for the current agent.
+
+        Args:
+            session_id: Session identifier
+            ticker: Stock ticker symbol
+            current_agent: Current agent name
+
+        Returns:
+            Context dictionary with previous research
+        """
+        context = {
+            "session_id": session_id,
+            "ticker": ticker,
+            "requesting_agent": current_agent,
+            "previous_research": {},
+        }
+
+        # Get handoffs for this session
+        if session_id in self.session_handoffs:
+            for handoff in self.session_handoffs[session_id]:
+                context["previous_research"][handoff.source_agent] = {
+                    "research_files": handoff.research_files,
+                    "summary": handoff.context_summary,
+                    "cross_references": handoff.cross_references,
+                    "confidence_metrics": handoff.confidence_metrics,
+                    "token_usage": handoff.token_usage,
+                    "timestamp": handoff.handoff_timestamp.isoformat(),
+                }
+
+        return context
+
     async def _mock_agent_execution(
         self, session_id: str, agent_name: str, ticker: str, expertise_level: int
     ) -> AgentResult:
         """
         Mock agent execution for testing the coordination framework.
 
-        This will be replaced with actual agent implementations.
+        This is used for agents that aren't implemented yet.
         """
         # Simulate some processing time
         await asyncio.sleep(1)
@@ -381,10 +487,15 @@ class AgentCoordinator:
                 # Extract from context if available
                 expertise_level = 5  # Default for now
 
-            # Re-execute the agent (using mock for now)
-            result = await self._mock_agent_execution(
-                session_id, agent_name, ticker, expertise_level
-            )
+            # Re-execute the agent - use real agent if available, otherwise mock
+            if self.agents[agent_name] is not None:
+                result = await self._execute_real_agent(
+                    session_id, agent_name, ticker, expertise_level
+                )
+            else:
+                result = await self._mock_agent_execution(
+                    session_id, agent_name, ticker, expertise_level
+                )
 
             return result.success
 

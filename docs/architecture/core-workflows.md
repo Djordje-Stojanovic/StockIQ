@@ -34,14 +34,14 @@ sequenceDiagram
     par Collaborative Research Phase
         API->>Valuation: Start deep valuation research
         Valuation->>Valuation: Private research (100k+ tokens)
-        Valuation->>DB: Write dcf_analysis.md
+        Valuation->>DB: Write owner_returns_analysis.md
         Valuation->>DB: Write peer_comparison.md
         
         API->>Strategic: Start strategic research
         Strategic->>DB: Read existing research
         Strategic->>Strategic: Private research + context
         Strategic->>DB: Write competitive_moat.md
-        Strategic->>DB: Add comment on DCF analysis
+        Strategic->>DB: Add comment on Owner-Returns analysis
         
         API->>Historian: Start historical research
         Historian->>DB: Read existing research

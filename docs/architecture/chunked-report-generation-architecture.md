@@ -174,7 +174,7 @@ class ChunkedReportGenerator:
         # Simple relevance extraction - could be enhanced with embeddings
         relevance_keywords = {
             "executive_summary": ["summary", "key findings", "recommendation", "thesis"],
-            "valuation_analysis": ["dcf", "valuation", "price target", "financial metrics"],
+            "valuation_analysis": ["owner-returns", "fcf-share", "price-ladder", "irr-decomposition", "valuation", "price target", "financial metrics"],
             "strategic_assessment": ["competitive", "strategy", "market position", "moat"],
             "company_overview": ["history", "timeline", "leadership", "business model"],
             # Add more mappings as needed
