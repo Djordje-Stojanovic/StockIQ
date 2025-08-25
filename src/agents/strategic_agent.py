@@ -129,9 +129,9 @@ No generic statements - only specific, sourced insights about competitive positi
                     },
                     {"role": "user", "content": research_prompt},
                 ],
-                reasoning_effort="low",  # Low to save tokens for output
-                verbosity="high",  # High for lots of detail
-                max_output_tokens=64000,  # 64k context for comprehensive data
+                reasoning_effort="low",  # Low reasoning effort
+                verbosity="medium",  # Medium verbosity
+                max_output_tokens=32000,  # 32k context for comprehensive data
             )
 
             logger.info(f"✅ Research phase completed: {len(temp_md)} characters with real data")

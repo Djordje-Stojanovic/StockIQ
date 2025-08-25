@@ -4,6 +4,8 @@ import asyncio
 import logging
 from typing import Any
 
+from ..agents.historian_agent import HistorianAgent
+from ..agents.strategic_agent import StrategicAgent
 from ..agents.valuation_agent import ValuationAgent
 from ..models.collaboration import AgentHandoff, AgentResult, ResearchStatus
 
@@ -26,9 +28,8 @@ class AgentCoordinator:
         # Initialize agent instances
         self.agents = {
             "valuation_agent": ValuationAgent(),
-            # Other agents will be added as they're implemented
-            "strategic_agent": None,  # Placeholder for future implementation
-            "historian_agent": None,  # Placeholder for future implementation
+            "strategic_agent": StrategicAgent(),
+            "historian_agent": HistorianAgent(),
             "synthesis_agent": None,  # Placeholder for future implementation
         }
 
